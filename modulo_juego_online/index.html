@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bingo Pro - Juego Online (QR)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brandDark: '#130A2A',
+            brandCard: '#201140',
+            brandOrange: '#FF6B00',
+            brandOrangeHover: '#E55F00',
+            gridBg: '#2E175B',
+            letraB: '#FF6B00',
+            letraI: '#7C3AED',
+            letraN: '#D9A32B',
+            letraG: '#DC2626',
+            letraO: '#0D9488',
+            brandCream: '#EDE7D9',
+          },
+          fontFamily: {
+            display: ['Arial Black', 'Impact', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #130A2A;
+      background-image: radial-gradient(circle at top right, #2b1254 0%, #130A2A 60%);
+    }
+    @keyframes pulso {
+      0% { transform: scale(0.9); opacity: 0.4; }
+      60% { transform: scale(1.03); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .anim-nueva { animation: pulso 0.4s ease-out; }
+  </style>
+</head>
+<body class="text-white min-h-screen font-sans">
+
+  <!-- ============== VISTA DEL JUGADOR (se activa si la URL trae ?c=...) ============== -->
+  <div id="vista-jugador" class="hidden max-w-md mx-auto px-4 py-8 min-h-screen flex-col items-center justify-center">
+    <div class="w-full flex items-center justify-between mb-6">
+      <span class="bg-brandOrange text-white font-display font-black text-sm px-4 py-1.5 rounded-lg shadow">
+        BINGO PRO
+      </span>
+      <span class="text-xs text-purple-300">Sala Online</span>
+    </div>
+
+    <p class="uppercase tracking-[0.25em] text-xs text-purple-300 mb-1 text-center">Tu tabla de bingo</p>
+    <p id="jugador-etiqueta" class="font-display font-black text-2xl mb-5 text-center">Jugador 1</p>
+
+    <div id="carton-jugador" class="hidden w-full bg-brandCard border border-purple-800/40 rounded-2xl p-3 shadow-2xl grid grid-cols-5 gap-2"></div>
+
+    <p id="nota-marcado-jugador" class="hidden text-xs text-purple-300 mt-5 text-center leading-relaxed">
+      Toca una casilla para marcarla a medida que el presentador cante los números.<br>
+      Tu marcado se guarda solo en este celular.
+    </p>
+  </div>
+
+  <!-- ============== VISTA DEL HOST ============== -->
+  <div id="vista-sala" class="max-w-6xl mx-auto px-4 py-6">
+
+    <!-- BOTÓN VOLVER AL MENÚ -->
+    <div class="w-full flex justify-between items-center mb-4">
+      <a href="../index.html" class="bg-purple-950/80 hover:bg-purple-900 border border-purple-800/50 text-purple-300 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold transition">
+        &larr; Volver al Menú Principal
+      </a>
+      <span class="text-xs font-bold tracking-widest text-purple-400">JUEGO ONLINE (QR)</span>
+    </div>
+
+    <!-- PANEL 1: CONFIGURACIÓN INICIAL -->
+    <div id="panel-configuracion" class="bg-brandCard/80 border border-purple-900/40 rounded-3xl p-4 md:p-6 shadow-2xl backdrop-blur-sm mb-6">
+      <h1 class="font-display font-black text-xl md:text-2xl mb-1">📱 Sala Online</h1>
+      <p class="text-xs text-purple-300 mb-5">
+        Genera una tabla única por jugador. El código QR se muestra de a uno: cada persona escanea el suyo desde este mismo dispositivo,
+        tú avanzas al siguiente, y así hasta terminar la ronda.
+      </p>
+
+      <!-- IMPORTAR TABLAS DEL MÓDULO DE DISEÑO: para que el cartón que abre el QR de la
+           tarjeta física #N sea exactamente el mismo #N que se imprimió. -->
+      <div class="mb-5 pb-5 border-b border-purple-900/40">
+        <label class="uppercase tracking-[0.2em] text-[10px] text-purple-400 block mb-1">Tablas impresas (opcional)</label>
+        <p class="text-xs text-purple-300 mb-3">
+          Importa el JSON exportado desde el módulo de Diseño (botón "📥 Exportar Tablas") para que la tabla que
+          abre el QR de la tarjeta física #N coincida exactamente con la tabla #N que ya se imprimió y repartió.
+        </p>
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <label class="px-4 py-2.5 bg-purple-700 hover:bg-purple-600 text-white font-bold rounded-xl text-sm shadow-lg transition cursor-pointer">
+            📂 Importar Tablas (JSON)
+            <input type="file" id="input-importar-tablas-diseno" accept="application/json" class="hidden">
+          </label>
+          <span id="info-tablas-importadas-diseno" class="text-xs text-purple-300">Aún no has importado tablas del módulo de Diseño.</span>
+        </div>
+      </div>
+
+      <div class="flex flex-col md:flex-row md:items-end gap-4 md:gap-6 mb-2">
+        <div id="bloque-modo-aleatorio" class="flex flex-col gap-1">
+          <label for="select-max-jugadores" class="uppercase tracking-[0.2em] text-[10px] text-purple-400">Jugadores en la sala</label>
+          <select id="select-max-jugadores"
+            class="bg-gridBg text-white border border-purple-800/40 rounded-xl px-4 py-3 text-sm md:text-base font-semibold outline-none focus:ring-2 focus:ring-brandOrange">
+            <option value="1">1 jugador</option>
+            <option value="2">2 jugadores</option>
+            <option value="3">3 jugadores</option>
+            <option value="4">4 jugadores</option>
+            <option value="5">5 jugadores</option>
+            <option value="6" selected>6 jugadores (gratis)</option>
+            <option value="8">8 jugadores</option>
+            <option value="10">10 jugadores</option>
+            <option value="15">15 jugadores</option>
+            <option value="20">20 jugadores</option>
+          </select>
+        </div>
+
+        <div id="bloque-modo-importado" class="hidden flex flex-col gap-1">
+          <label class="uppercase tracking-[0.2em] text-[10px] text-purple-400">Rango de tarjetas importadas a generar</label>
+          <div class="flex items-center gap-2">
+            <input type="number" id="input-rango-desde" min="1"
+              class="w-24 bg-gridBg text-white border border-purple-800/40 rounded-xl px-3 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-brandOrange" placeholder="Desde">
+            <span class="text-purple-400 text-sm">a</span>
+            <input type="number" id="input-rango-hasta" min="1"
+              class="w-24 bg-gridBg text-white border border-purple-800/40 rounded-xl px-3 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-brandOrange" placeholder="Hasta">
+          </div>
+          <button id="btn-usar-modo-aleatorio" type="button" class="text-[11px] text-purple-400 hover:text-white underline underline-offset-2 mt-1 text-left">
+            Usar tablas aleatorias en su lugar
+          </button>
+        </div>
+
+        <button id="btn-generar-sala"
+          class="px-5 py-3 rounded-xl text-sm font-bold bg-brandOrange hover:bg-brandOrangeHover text-white transition shadow">
+          🎟️ Generar Sala y Comenzar
+        </button>
+      </div>
+
+      <p id="aviso-sin-conexion" class="hidden text-xs text-amber-300 bg-brandDark/60 border border-amber-500/30 rounded-lg px-3 py-2 mt-4">
+        ⚠️ Esta página se abrió como archivo local (file://). Los códigos QR generados solo funcionarán si subes este mismo archivo HTML
+        a un hosting con URL pública (por ejemplo Netlify) y lo abres desde ahí — de lo contrario los celulares
+        no podrán acceder a la tabla al escanear.
+      </p>
+    </div>
+
+    <!-- PANEL 2: REVELADO SECUENCIAL DE QR (uno a la vez) -->
+    <div id="panel-secuencial" class="hidden bg-brandCard/80 border border-purple-900/40 rounded-3xl p-4 md:p-8 shadow-2xl backdrop-blur-sm mb-6 flex flex-col items-center text-center">
+
+      <p id="aviso-sin-conexion-qr" class="hidden w-full max-w-lg text-sm text-white bg-rose-700/90 border-2 border-rose-400 rounded-xl px-4 py-3 mb-5 text-left">
+        🚫 <strong>Este QR NO va a funcionar todavía.</strong> Estás viendo el archivo local de tu computador (file://), no la versión
+        publicada en internet. Sube este archivo a un hosting (Netlify, etc.) y abre la sala desde esa dirección pública —
+        recién ahí el celular podrá leer el código.
+      </p>
+
+      <p class="uppercase tracking-[0.25em] text-xs text-purple-400 mb-1">Turno del jugador</p>
+      <p id="etiqueta-jugador-actual" class="font-display font-black text-3xl md:text-4xl mb-1">Jugador 1</p>
+      <p id="progreso-sala" class="text-xs text-purple-300 mb-5">1 de 6</p>
+
+      <div id="contenedor-qr-actual" class="w-56 h-56 md:w-64 md:h-64 bg-white rounded-2xl p-3 shadow-2xl flex items-center justify-center mb-4">
+        <img id="img-qr-actual" class="w-full h-full object-contain" alt="Código QR del jugador actual">
+      </div>
+
+      <a id="link-ver-tabla-actual" href="#" target="_blank" rel="noopener" class="text-xs text-purple-300 underline underline-offset-2 hover:text-white mb-6">
+        Ver tabla en este dispositivo
+      </a>
+
+      <div class="w-full max-w-sm flex items-center gap-3">
+        <button id="btn-jugador-anterior" class="px-4 py-3 rounded-xl text-sm font-bold bg-gridBg hover:bg-purple-800 text-white transition">
+          ← Anterior
+        </button>
+        <button id="btn-jugador-siguiente" class="flex-1 px-4 py-3 rounded-xl text-sm font-bold bg-brandOrange hover:bg-brandOrangeHover text-white transition shadow">
+          Siguiente Jugador →
+        </button>
+      </div>
+
+      <button id="btn-finalizar-sala" class="hidden w-full max-w-sm mt-3 px-4 py-4 rounded-xl text-base font-display font-black bg-green-600 hover:bg-green-500 text-white transition shadow-lg">
+        ✅ Finalizar e ir a la Balotera →
+      </button>
+
+      <div class="w-full max-w-sm flex items-center justify-between mt-6 pt-4 border-t border-purple-900/40">
+        <button id="btn-reiniciar-sala" class="text-xs text-purple-400 hover:text-white underline underline-offset-2 transition">
+          ↺ Generar una sala nueva
+        </button>
+        <button id="btn-exportar-tablas" class="text-xs text-purple-400 hover:text-white underline underline-offset-2 transition">
+          📥 Exportar Tablas (JSON)
+        </button>
+      </div>
+    </div>
+
+    <div class="text-center py-2 text-[10px] text-purple-400">Bingo Pro - Módulo Juego Online</div>
+  </div>
+
+  <script>
+    // ============================================================
+    // BingoCommon: mismo algoritmo reforzado de generación de tablas
+    // (Fisher-Yates + firma de columnas para garantizar cero duplicados)
+    // usado también en el módulo de Diseño, para mantener consistencia.
+    // ============================================================
+    const RANGOS = [
+      { letra: 'B', min: 1,  max: 15 },
+      { letra: 'I', min: 16, max: 30 },
+      { letra: 'N', min: 31, max: 45 },
+      { letra: 'G', min: 46, max: 60 },
+      { letra: 'O', min: 61, max: 75 },
+    ];
+
+    function numerosAleatorios(min, max, cantidad) {
+      const pool = [];
+      for (let n = min; n <= max; n++) pool.push(n);
+      for (let i = pool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+      }
+      return pool.slice(0, cantidad);
+    }
+
+    function generarColumnasCarton() {
+      return RANGOS.map(r => numerosAleatorios(r.min, r.max, 5));
+    }
+
+    function firmaCarton(columnas) {
+      return columnas.map(col => col.join(',')).join('|');
+    }
+
+    function generarCartonesUnicos(total) {
+      const vistos = new Set();
+      const cartones = [];
+      while (cartones.length < total) {
+        const columnas = generarColumnasCarton();
+        const firma = firmaCarton(columnas);
+        if (vistos.has(firma)) continue; // evita tablas duplicadas en el mismo lote
+        vistos.add(firma);
+        cartones.push(columnas);
+      }
+      return cartones;
+    }
+
+    // ============================================================
+    // Codificación de la tabla en la URL (base64 URL-safe, sin servidor)
+    // ============================================================
+    function codificarCartonURL(columnas, numeroJugador) {
+      const json = JSON.stringify({ p: numeroJugador, cols: columnas });
+      const base64 = btoa(unescape(encodeURIComponent(json)));
+      return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+
+    function decodificarCartonURL(codigo) {
+      let base64 = codigo.replace(/-/g, '+').replace(/_/g, '/');
+      while (base64.length % 4) base64 += '=';
+      const json = decodeURIComponent(escape(atob(base64)));
+      return JSON.parse(json);
+    }
+
+    function construirUrlJugador(columnas, numeroJugador) {
+      const codigo = codificarCartonURL(columnas, numeroJugador);
+      const base = window.location.origin + window.location.pathname;
+      return `${base}?c=${codigo}`;
+    }
+
+    // Genera la imagen del QR usando un servicio público por URL (sin
+    // dependencia de ninguna librería JS externa que pueda fallar al cargar).
+    function urlImagenQR(datos, tamano) {
+      return `https://api.qrserver.com/v1/create-qr-code/?size=${tamano}x${tamano}&data=${encodeURIComponent(datos)}`;
+    }
+
+    // ============================================================
+    // IMPORTAR TABLAS DEL MÓDULO DE DISEÑO (mismo formato/clave que usa
+    // la Balotera: [{id, columnas}] -> dict { "id": columnas }). Al importar
+    // aquí, el cartón que revela el QR de la tarjeta física #N es exactamente
+    // el mismo #N que ya se imprimió, en vez de un lote aleatorio nuevo.
+    // ============================================================
+    const CLAVE_TABLAS_BALOTERA = 'bingo_balotera_tablas_v1';
+    let tablasImportadasDiseno = cargarTablasImportadasDeLocalStorage();
+
+    function cargarTablasImportadasDeLocalStorage() {
+      try {
+        const guardado = localStorage.getItem(CLAVE_TABLAS_BALOTERA);
+        if (guardado) return JSON.parse(guardado);
+      } catch (e) { /* sin localStorage disponible */ }
+      return {};
+    }
+
+    function guardarTablasImportadasEnLocalStorage() {
+      try {
+        localStorage.setItem(CLAVE_TABLAS_BALOTERA, JSON.stringify(tablasImportadasDiseno));
+      } catch (e) { /* continúa funcionando solo en memoria durante la sesión */ }
+    }
+
+    function importarTablasDesdeDiseno(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (evt) {
+        try {
+          const data = JSON.parse(evt.target.result);
+          if (!Array.isArray(data)) throw new Error('El archivo no contiene una lista de tablas.');
+
+          const dict = {};
+          data.forEach(t => {
+            if (t && t.id !== undefined && Array.isArray(t.columnas)) {
+              dict[String(t.id)] = t.columnas;
+            }
+          });
+
+          tablasImportadasDiseno = dict;
+          guardarTablasImportadasEnLocalStorage();
+          actualizarInfoTablasImportadas();
+        } catch (err) {
+          alert('El archivo no tiene el formato esperado. Debe ser el JSON exportado desde el botón "📥 Exportar Tablas" del módulo de Diseño.');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function actualizarInfoTablasImportadas() {
+      const ids = Object.keys(tablasImportadasDiseno).map(Number).filter(n => !isNaN(n));
+      const total = ids.length;
+      const info = document.getElementById('info-tablas-importadas-diseno');
+      const bloqueAleatorio = document.getElementById('bloque-modo-aleatorio');
+      const bloqueImportado = document.getElementById('bloque-modo-importado');
+
+      if (total > 0) {
+        const minId = Math.min(...ids);
+        const maxId = Math.max(...ids);
+        info.textContent = `✅ ${total} tabla${total === 1 ? '' : 's'} importada${total === 1 ? '' : 's'} (rango #${minId} a #${maxId}).`;
+        bloqueAleatorio.classList.add('hidden');
+        bloqueImportado.classList.remove('hidden');
+        document.getElementById('input-rango-desde').value = minId;
+        document.getElementById('input-rango-hasta').value = Math.min(maxId, minId + 19);
+        document.getElementById('input-rango-desde').min = minId;
+        document.getElementById('input-rango-desde').max = maxId;
+        document.getElementById('input-rango-hasta').min = minId;
+        document.getElementById('input-rango-hasta').max = maxId;
+      } else {
+        info.textContent = 'Aún no has importado tablas del módulo de Diseño.';
+        bloqueAleatorio.classList.remove('hidden');
+        bloqueImportado.classList.add('hidden');
+      }
+    }
+
+    // ============================================================
+    // VISTA DEL HOST: generación + revelado secuencial de QR
+    // ============================================================
+    let jugadoresSala = []; // [{ numero, columnas, url }]
+    let indiceActual = 0;
+
+    function generarSala() {
+      const usandoTablasImportadas = !document.getElementById('bloque-modo-importado').classList.contains('hidden');
+
+      if (usandoTablasImportadas) {
+        const desde = parseInt(document.getElementById('input-rango-desde').value, 10);
+        const hasta = parseInt(document.getElementById('input-rango-hasta').value, 10);
+
+        if (isNaN(desde) || isNaN(hasta) || desde > hasta) {
+          alert('Revisa el rango de tarjetas: "Desde" debe ser menor o igual a "Hasta".');
+          return;
+        }
+
+        jugadoresSala = [];
+        for (let id = desde; id <= hasta; id++) {
+          const columnas = tablasImportadasDiseno[String(id)];
+          if (!columnas) continue; // esa tarjeta no existe en el archivo importado
+          jugadoresSala.push({
+            numero: id,
+            columnas,
+            url: construirUrlJugador(columnas, id),
+          });
+        }
+
+        if (jugadoresSala.length === 0) {
+          alert('No se encontró ninguna tarjeta importada en ese rango. Verifica los números.');
+          return;
+        }
+      } else {
+        const total = parseInt(document.getElementById('select-max-jugadores').value, 10);
+        const cartones = generarCartonesUnicos(total);
+
+        jugadoresSala = cartones.map((columnas, i) => {
+          const numero = i + 1;
+          return {
+            numero,
+            columnas,
+            url: construirUrlJugador(columnas, numero),
+          };
+        });
+      }
+
+      indiceActual = 0;
+      document.getElementById('panel-configuracion').classList.add('hidden');
+      document.getElementById('panel-secuencial').classList.remove('hidden');
+      mostrarJugadorActual();
+    }
+
+    function mostrarJugadorActual() {
+      const jugador = jugadoresSala[indiceActual];
+      const total = jugadoresSala.length;
+
+      const esModoImportado = !document.getElementById('bloque-modo-importado').classList.contains('hidden');
+      document.getElementById('etiqueta-jugador-actual').textContent = esModoImportado
+        ? `Tarjeta #${String(jugador.numero).padStart(4, '0')}`
+        : `Jugador ${jugador.numero}`;
+      document.getElementById('progreso-sala').textContent = `${indiceActual + 1} de ${total}`;
+
+      const img = document.getElementById('img-qr-actual');
+      img.src = urlImagenQR(jugador.url, 300);
+      img.classList.remove('anim-nueva');
+      void img.offsetWidth;
+      img.classList.add('anim-nueva');
+
+      const link = document.getElementById('link-ver-tabla-actual');
+      link.href = jugador.url;
+
+      document.getElementById('btn-jugador-anterior').disabled = (indiceActual === 0);
+      document.getElementById('btn-jugador-anterior').classList.toggle('opacity-40', indiceActual === 0);
+
+      const esUltimo = (indiceActual === total - 1);
+      document.getElementById('btn-jugador-siguiente').classList.toggle('hidden', esUltimo);
+      document.getElementById('btn-finalizar-sala').classList.toggle('hidden', !esUltimo);
+    }
+
+    function irAJugadorSiguiente() {
+      if (indiceActual < jugadoresSala.length - 1) {
+        indiceActual++;
+        mostrarJugadorActual();
+      }
+    }
+
+    function irAJugadorAnterior() {
+      if (indiceActual > 0) {
+        indiceActual--;
+        mostrarJugadorActual();
+      }
+    }
+
+    // Convierte el lote actual al mismo formato que usa el módulo de
+    // Balotera para sus tablas importadas, y lo escribe en el mismo
+    // localStorage (comparten origen una vez alojados en el mismo hosting).
+    // Así, al abrir la Balotera, las tablas ya aparecen listas para
+    // verificar sin necesidad de exportar/importar el archivo a mano.
+    function sincronizarTablasConBalotera() {
+      const dict = {};
+      jugadoresSala.forEach(j => { dict[String(j.numero)] = j.columnas; });
+      try {
+        localStorage.setItem(CLAVE_TABLAS_BALOTERA, JSON.stringify(dict));
+        return true;
+      } catch (e) {
+        return false; // sin localStorage disponible: seguirá funcionando el export manual
+      }
+    }
+
+    function finalizarEIrABalotera() {
+      const sincronizado = sincronizarTablasConBalotera();
+      if (!sincronizado) {
+        alert('No se pudo guardar automáticamente (localStorage no disponible en este navegador). Usa "Exportar Tablas" y súbelo manualmente en la Balotera.');
+        return;
+      }
+      window.location.href = '../modulo_balotera/index.html';
+    }
+
+    function exportarTablasSalaJSON() {
+      if (jugadoresSala.length === 0) {
+        alert('Primero genera una sala para poder exportar sus tablas.');
+        return;
+      }
+
+      const lote = jugadoresSala.map(j => ({ id: j.numero, columnas: j.columnas }));
+      const blob = new Blob([JSON.stringify(lote, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const fecha = new Date().toISOString().slice(0, 10);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `tablas_sala_online_${fecha}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function reiniciarSala() {
+      if (jugadoresSala.length > 0 && !confirm('¿Generar una sala nueva? Se perderán las tablas actuales (expórtalas antes si las necesitas).')) {
+        return;
+      }
+      jugadoresSala = [];
+      indiceActual = 0;
+      document.getElementById('panel-secuencial').classList.add('hidden');
+      document.getElementById('panel-configuracion').classList.remove('hidden');
+    }
+
+    function avisarSiEsArchivoLocal() {
+      if (window.location.protocol === 'file:') {
+        document.getElementById('aviso-sin-conexion').classList.remove('hidden');
+        document.getElementById('aviso-sin-conexion-qr').classList.remove('hidden');
+      }
+    }
+
+    // ============================================================
+    // VISTA DEL JUGADOR (cuando la URL trae ?c=<tabla codificada>)
+    // Sin gate de registro: este producto es de acceso libre, no recolecta
+    // datos personales. Ver el cartón es inmediato al escanear el QR.
+    // ============================================================
+    function claveMarcasJugador(codigo) {
+      return `bingo_online_marcas_${codigo}`;
+    }
+
+    function cargarMarcasJugador(codigo) {
+      try {
+        const guardado = localStorage.getItem(claveMarcasJugador(codigo));
+        if (guardado) return JSON.parse(guardado);
+      } catch (e) { /* sin localStorage: las marcas no persistirán a un refresco */ }
+      return {};
+    }
+
+    function guardarMarcasJugador(codigo, marcas) {
+      try {
+        localStorage.setItem(claveMarcasJugador(codigo), JSON.stringify(marcas));
+      } catch (e) { /* continúa funcionando solo en memoria durante la sesión */ }
+    }
+
+    // Dibuja la grilla 5x5 del cartón dentro de #carton-jugador.
+    function renderizarCartonJugador(datos, codigo) {
+      document.getElementById('jugador-etiqueta').textContent = `Jugador ${datos.p}`;
+
+      const marcas = cargarMarcasJugador(codigo);
+      const contenedor = document.getElementById('carton-jugador');
+      contenedor.innerHTML = '';
+
+      const coloresLetra = ['letraB', 'letraI', 'letraN', 'letraG', 'letraO'];
+
+      for (let fila = 0; fila < 5; fila++) {
+        for (let col = 0; col < 5; col++) {
+          const celda = document.createElement('div');
+          const esLibre = (fila === 2 && col === 2);
+          const clave = `${fila}-${col}`;
+          const marcada = esLibre || !!marcas[clave];
+
+          celda.className = `aspect-square rounded-lg border-2 flex items-center justify-center font-bold text-sm md:text-base transition select-none
+            ${marcada ? `bg-${coloresLetra[col]} text-white border-white/20` : 'bg-brandDark text-purple-200 border-purple-800/40'}`;
+          celda.textContent = esLibre ? 'FREE' : datos.cols[col][fila];
+
+          if (!esLibre) {
+            celda.addEventListener('click', () => {
+              marcas[clave] = !marcas[clave];
+              guardarMarcasJugador(codigo, marcas);
+              if (marcas[clave]) {
+                celda.className = `aspect-square rounded-lg border-2 flex items-center justify-center font-bold text-sm md:text-base transition select-none bg-${coloresLetra[col]} text-white border-white/20`;
+              } else {
+                celda.className = 'aspect-square rounded-lg border-2 flex items-center justify-center font-bold text-sm md:text-base transition select-none bg-brandDark text-purple-200 border-purple-800/40';
+              }
+            });
+          }
+
+          contenedor.appendChild(celda);
+        }
+      }
+
+      document.getElementById('carton-jugador').classList.remove('hidden');
+      document.getElementById('nota-marcado-jugador').classList.remove('hidden');
+    }
+
+    function mostrarVistaJugador(codigo) {
+      document.getElementById('vista-sala').classList.add('hidden');
+      const vista = document.getElementById('vista-jugador');
+      vista.classList.remove('hidden');
+      vista.classList.add('flex');
+
+      let datos;
+      try {
+        datos = decodificarCartonURL(codigo);
+      } catch (e) {
+        vista.innerHTML = '<p class="text-white text-center">No se pudo leer esta tabla. Pide al presentador un nuevo código QR.</p>';
+        return;
+      }
+
+      renderizarCartonJugador(datos, codigo);
+    }
+
+    // ============================================================
+    // Punto de entrada
+    // ============================================================
+    const parametrosURL = new URLSearchParams(window.location.search);
+    const codigoCarton = parametrosURL.get('c');
+
+    if (codigoCarton) {
+      mostrarVistaJugador(codigoCarton);
+    } else {
+      avisarSiEsArchivoLocal();
+      actualizarInfoTablasImportadas();
+      document.getElementById('btn-generar-sala').addEventListener('click', generarSala);
+      document.getElementById('btn-jugador-siguiente').addEventListener('click', irAJugadorSiguiente);
+      document.getElementById('btn-jugador-anterior').addEventListener('click', irAJugadorAnterior);
+      document.getElementById('btn-finalizar-sala').addEventListener('click', finalizarEIrABalotera);
+      document.getElementById('btn-reiniciar-sala').addEventListener('click', reiniciarSala);
+      document.getElementById('btn-exportar-tablas').addEventListener('click', exportarTablasSalaJSON);
+      document.getElementById('input-importar-tablas-diseno').addEventListener('change', importarTablasDesdeDiseno);
+      document.getElementById('btn-usar-modo-aleatorio').addEventListener('click', () => {
+        document.getElementById('bloque-modo-importado').classList.add('hidden');
+        document.getElementById('bloque-modo-aleatorio').classList.remove('hidden');
+      });
+    }
+  </script>
+</body>
+</html>

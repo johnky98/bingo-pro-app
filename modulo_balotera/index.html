@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bingo Pro - Panel de Control & Balotera</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brandDark: '#130A2A',
+            brandCard: '#201140',
+            brandOrange: '#FF6B00',
+            brandOrangeHover: '#E55F00',
+            gridBg: '#2E175B',
+            letraB: '#FF6B00',
+            letraI: '#7C3AED',
+            letraN: '#D9A32B',
+            letraG: '#DC2626',
+            letraO: '#0D9488',
+          },
+          fontFamily: {
+            display: ['Arial Black', 'Impact', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #130A2A;
+      background-image: radial-gradient(circle at top right, #2b1254 0%, #130A2A 60%);
+    }
+
+    @keyframes pulso {
+      0% { transform: scale(0.85); opacity: 0.4; }
+      60% { transform: scale(1.06); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .anim-nueva { animation: pulso 0.5s cubic-bezier(.2,.9,.3,1.2); }
+
+    #modal-dibujo { backdrop-filter: blur(3px); }
+  </style>
+</head>
+<body class="text-white min-h-screen font-sans flex flex-col p-4">
+
+  <!-- BOTÓN VOLVER AL MENÚ -->
+  <div class="max-w-6xl w-full mx-auto flex justify-between items-center py-2">
+    <a href="../index.html" class="bg-purple-950/80 hover:bg-purple-900 border border-purple-800/50 text-purple-300 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold transition">
+      &larr; Volver al Menú Principal
+    </a>
+    <span class="text-xs font-bold tracking-widest text-purple-400">FASE 3: BALOTERA & CONTROL</span>
+  </div>
+
+  <!-- CONTADORES -->
+  <div class="max-w-6xl w-full mx-auto flex items-center justify-between text-sm text-purple-300 mt-4 mb-2 px-1">
+    <span id="contador-restantes">75 balotas por sacar</span>
+    <span id="contador-salidas">0 de 75 salieron</span>
+  </div>
+
+  <!-- SELECTOR DE MODALIDAD DE JUEGO -->
+  <div class="max-w-6xl w-full mx-auto mb-6 bg-brandCard/80 border border-purple-900/40 rounded-3xl p-4 md:p-6 shadow-2xl backdrop-blur-sm">
+    <div class="flex flex-col md:flex-row md:items-center gap-5 md:gap-8">
+      <div class="flex-1 flex flex-col sm:flex-row sm:items-center gap-3">
+        <div class="flex flex-col gap-1">
+          <label for="select-modalidad" class="uppercase tracking-[0.2em] text-[10px] text-purple-400">Modalidad de juego</label>
+          <select id="select-modalidad" onchange="cambiarModalidadPreestablecida(this.value)"
+            class="bg-gridBg text-white border border-purple-800/40 rounded-xl px-4 py-3 text-sm md:text-base font-semibold outline-none focus:ring-2 focus:ring-brandOrange">
+            <option value="lleno">Cartón Lleno</option>
+            <option value="horizontal">Línea Horizontal</option>
+            <option value="vertical">Línea Vertical</option>
+            <option value="l">Figura en L</option>
+            <option value="cuadrado">Figura en O / Cuadrado</option>
+            <option value="esquinas">Cuatro Esquinas</option>
+            <option value="personalizado" disabled>Personalizado (manual)</option>
+          </select>
+        </div>
+
+        <button onclick="abrirModalDibujo()"
+          class="mt-1 sm:mt-6 self-start px-4 py-3 rounded-xl text-sm font-bold bg-purple-700 hover:bg-purple-600 text-white transition shadow">
+          ✏️ Modo dibujo personalizado
+        </button>
+      </div>
+
+      <div class="flex items-center gap-4 bg-gridBg/60 border border-purple-800/30 rounded-2xl px-4 py-3">
+        <div id="miniatura-patron" class="grid grid-cols-5 gap-[3px] w-20 h-20 md:w-24 md:h-24 flex-shrink-0"></div>
+        <div>
+          <p class="uppercase tracking-[0.2em] text-[10px] text-purple-400 mb-1">Se juega</p>
+          <p id="nombre-patron-activo" class="font-display font-black text-lg md:text-xl leading-tight text-white">Cartón Lleno</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENEDOR PRINCIPAL DEL JUEGO -->
+  <div class="max-w-6xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    
+    <!-- COLUMNA IZQUIERDA: CONTROLES & HISTORIAL -->
+    <div class="lg:col-span-5 flex flex-col items-center justify-center space-y-6 text-center pt-4">
+      
+      <!-- BALOTA ACTUAL CANTADA (CÍRCULO) -->
+      <div class="space-y-2">
+        <span class="text-xs uppercase tracking-widest text-purple-300 font-bold">Balota Actual</span>
+        <div id="balota-actual-circulo" class="w-48 h-48 md:w-56 md:h-56 mx-auto rounded-full flex flex-col items-center justify-center bg-brandCard border-4 border-purple-800/40 shadow-2xl transition-colors">
+          <span id="balota-letra" class="font-display font-black text-3xl md:text-4xl leading-none text-white">—</span>
+          <span id="balota-numero" class="font-display font-black text-6xl md:text-7xl leading-none text-white">--</span>
+        </div>
+      </div>
+
+      <!-- BOTÓN PRINCIPAL SACAR BALOTA -->
+      <div class="w-full max-w-sm space-y-3">
+        <button id="btn-sacar-balota" onclick="sacarBalotaAleatoria()" class="w-full py-4 bg-brandOrange hover:bg-brandOrangeHover text-white font-display font-black text-2xl tracking-wide rounded-2xl shadow-2xl transform active:scale-95 transition-all">
+          ¡SACAR BALOTA!
+        </button>
+        
+        <div>
+          <button onclick="reiniciarJuego()" class="text-xs text-purple-300 hover:text-white underline tracking-wide transition">
+            Reiniciar juego
+          </button>
+        </div>
+      </div>
+
+      <!-- HISTORIAL RECIENTE -->
+      <div class="w-full max-w-sm pt-4 text-left border-t border-purple-900/50">
+        <h3 class="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">HISTORIAL RECIENTE</h3>
+        <div id="historial-reciente" class="text-xs text-purple-300 font-medium">
+          Aún no hay balotas anteriores
+        </div>
+      </div>
+
+    </div>
+
+    <!-- COLUMNA DERECHA: TABLERO DE BALOTAS 1-75 (SOLO LECTURA) -->
+    <div class="lg:col-span-7 bg-brandCard/80 border border-purple-900/40 p-6 rounded-3xl shadow-2xl backdrop-blur-sm">
+      <div id="tablero-balotas-grid" class="grid grid-cols-5 gap-2"></div>
+      <p class="text-[10px] text-purple-400/70 text-center mt-4">
+        Este tablero es solo de verificación visual — únicamente el botón "¡SACAR BALOTA!" marca números como cantados.
+      </p>
+    </div>
+
+  </div>
+
+  <!-- VERIFICADOR DE TABLAS GANADORAS -->
+  <div class="max-w-6xl w-full mx-auto mt-8 bg-brandCard/80 border border-purple-900/40 p-6 rounded-3xl shadow-2xl backdrop-blur-sm">
+    <h2 class="text-base font-bold text-white flex items-center gap-2 mb-1">
+      <span>🏆</span> Verificar Tabla Ganadora
+    </h2>
+    <p class="text-xs text-purple-300 mb-4">
+      Importa el archivo JSON exportado desde el módulo de Diseño (botón "📥 Exportar Tablas") y escribe el número de tabla para verificarla contra las balotas ya cantadas.
+    </p>
+
+    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-4">
+      <label class="px-4 py-2.5 bg-purple-700 hover:bg-purple-600 text-white font-bold rounded-xl text-sm shadow-lg transition cursor-pointer">
+        📂 Importar Tablas (JSON)
+        <input type="file" id="input-importar-tablas" accept="application/json" onchange="importarTablasJSON(event)" class="hidden">
+      </label>
+      <span id="info-tablas-importadas" class="text-xs text-purple-300">Aún no has importado ningún archivo de tablas.</span>
+    </div>
+
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-5">
+      <input type="number" id="input-id-tabla" min="1" placeholder="N.° de tabla (ej: 42)" class="flex-1 sm:flex-none sm:w-56 bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-bold text-amber-400 outline-none">
+      <button onclick="verificarTabla()" class="px-5 py-2.5 bg-brandOrange hover:bg-brandOrangeHover text-white font-bold rounded-xl text-sm shadow-lg transition">
+        🔍 Verificar
+      </button>
+    </div>
+
+    <div id="resultado-verificacion"></div>
+  </div>
+
+  <div class="text-center py-4 text-[10px] text-purple-400">Bingo Pro - Panel de Balotas</div>
+
+  <!-- MODAL: MODO DIBUJO PERSONALIZADO -->
+  <div id="modal-dibujo" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-50 px-4">
+    <div class="bg-brandCard border border-purple-800/50 text-white rounded-2xl p-6 max-w-xs w-full shadow-2xl">
+      <h2 class="font-display font-black text-xl mb-1">Dibuja la figura</h2>
+      <p class="text-xs mb-4 text-purple-300">Haz clic en las casillas para encenderlas o apagarlas. El centro es la casilla libre por defecto.</p>
+      <div id="matriz-dibujo" class="grid grid-cols-5 gap-2 mb-5 max-w-[260px] mx-auto"></div>
+      <div class="flex justify-end gap-3">
+        <button onclick="cerrarModalDibujo()" class="px-4 py-2 rounded-full text-sm font-semibold text-purple-300 hover:text-white transition">Cancelar</button>
+        <button onclick="guardarPatronPersonalizado()" class="px-5 py-2 rounded-full text-sm font-bold bg-brandOrange hover:bg-brandOrangeHover text-white transition">Guardar patrón</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const CLAVE_BALOTAS = 'bingo_balotera_balotas_v1';
+    const CLAVE_TABLAS = 'bingo_balotera_tablas_v1';
+    const CLAVE_PATRON = 'bingo_balotera_patron_v1';
+
+    function guardarBolasCantadas() {
+      try {
+        localStorage.setItem(CLAVE_BALOTAS, JSON.stringify(bolasCantadas));
+      } catch (e) { /* sin localStorage disponible */ }
+    }
+
+    function cargarBolasCantadas() {
+      try {
+        const guardado = localStorage.getItem(CLAVE_BALOTAS);
+        if (guardado) return JSON.parse(guardado);
+      } catch (e) { /* sin localStorage disponible */ }
+      return [];
+    }
+
+    function guardarTablasImportadas() {
+      try {
+        localStorage.setItem(CLAVE_TABLAS, JSON.stringify(tablasImportadas));
+      } catch (e) { /* sin localStorage disponible */ }
+    }
+
+    function cargarTablasImportadas() {
+      try {
+        const guardado = localStorage.getItem(CLAVE_TABLAS);
+        if (guardado) return JSON.parse(guardado);
+      } catch (e) { /* sin localStorage disponible */ }
+      return {};
+    }
+
+    function guardarPatronActivo() {
+      try {
+        localStorage.setItem(CLAVE_PATRON, JSON.stringify(patronActivo));
+      } catch (e) { /* sin localStorage disponible */ }
+    }
+
+    function cargarPatronActivo() {
+      try {
+        const guardado = localStorage.getItem(CLAVE_PATRON);
+        if (guardado) return JSON.parse(guardado);
+      } catch (e) { /* sin localStorage disponible */ }
+      return null;
+    }
+
+    let bolasCantadas = cargarBolasCantadas();
+    let tablasImportadas = cargarTablasImportadas();
+
+    const NOMBRES_PATRON = {
+      lleno: 'Cartón Lleno',
+      horizontal: 'Línea Horizontal',
+      vertical: 'Línea Vertical',
+      l: 'Figura en L',
+      cuadrado: 'Figura en O / Cuadrado',
+      esquinas: 'Cuatro Esquinas',
+      personalizado: 'Personalizado (manual)',
+    };
+
+    function generarPatron(clave) {
+      const grid = Array.from({ length: 5 }, () => Array(5).fill(false));
+      for (let f = 0; f < 5; f++) {
+        for (let c = 0; c < 5; c++) {
+          switch (clave) {
+            case 'lleno': grid[f][c] = true; break;
+            case 'horizontal': grid[f][c] = (f === 2); break;
+            case 'vertical': grid[f][c] = (c === 2); break;
+            case 'l': grid[f][c] = (c === 0) || (f === 4); break;
+            case 'cuadrado': grid[f][c] = (f === 0 || f === 4 || c === 0 || c === 4); break;
+            case 'esquinas': grid[f][c] = (f === 0 || f === 4) && (c === 0 || c === 4); break;
+            default: grid[f][c] = false;
+          }
+        }
+      }
+      grid[2][2] = true;
+      return grid;
+    }
+
+    const patronGuardado = cargarPatronActivo();
+    let patronActivo = patronGuardado || { nombre: NOMBRES_PATRON.lleno, clave: 'lleno', grid: generarPatron('lleno') };
+    let matrizDibujoTemp = (() => {
+      if (patronActivo.clave === 'personalizado') return patronActivo.grid.map(fila => fila.slice());
+      const g = Array.from({ length: 5 }, () => Array(5).fill(false));
+      g[2][2] = true;
+      return g;
+    })();
+
+    function renderMiniaturaPatron(grid) {
+      const cont = document.getElementById('miniatura-patron');
+      cont.innerHTML = '';
+      for (let f = 0; f < 5; f++) {
+        for (let c = 0; c < 5; c++) {
+          const cel = document.createElement('div');
+          cel.className = grid[f][c] ? 'rounded-[2px] bg-brandOrange' : 'rounded-[2px] bg-white/10';
+          cont.appendChild(cel);
+        }
+      }
+    }
+
+    function aplicarPatronActivo() {
+      document.getElementById('nombre-patron-activo').textContent = patronActivo.nombre;
+      renderMiniaturaPatron(patronActivo.grid);
+      const select = document.getElementById('select-modalidad');
+      const opcionPersonalizada = select.querySelector('option[value="personalizado"]');
+      if (patronActivo.clave === 'personalizado') {
+        opcionPersonalizada.disabled = false;
+        select.value = 'personalizado';
+      } else {
+        opcionPersonalizada.disabled = true;
+        select.value = patronActivo.clave;
+      }
+    }
+
+    function cambiarModalidadPreestablecida(clave) {
+      patronActivo = { nombre: NOMBRES_PATRON[clave], clave, grid: generarPatron(clave) };
+      aplicarPatronActivo();
+      guardarPatronActivo();
+      refrescarVerificacionSiHayTablaVisible();
+    }
+
+    function construirMatrizDibujo() {
+      const matriz = document.getElementById('matriz-dibujo');
+      matriz.innerHTML = '';
+      for (let f = 0; f < 5; f++) {
+        for (let c = 0; c < 5; c++) {
+          const boton = document.createElement('button');
+          boton.type = 'button';
+          const esLibre = (f === 2 && c === 2);
+          const encendida = matrizDibujoTemp[f][c];
+          boton.className = `aspect-square rounded-md border-2 border-purple-700/40 text-[9px] font-bold flex items-center justify-center transition ${encendida ? 'bg-brandOrange text-white' : 'bg-white/5 text-purple-300'}`;
+          boton.textContent = esLibre ? 'FREE' : '';
+          boton.addEventListener('click', () => {
+            matrizDibujoTemp[f][c] = !matrizDibujoTemp[f][c];
+            construirMatrizDibujo();
+          });
+          matriz.appendChild(boton);
+        }
+      }
+    }
+
+    function abrirModalDibujo() {
+      construirMatrizDibujo();
+      const modal = document.getElementById('modal-dibujo');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function cerrarModalDibujo() {
+      const modal = document.getElementById('modal-dibujo');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function guardarPatronPersonalizado() {
+      const gridGuardado = matrizDibujoTemp.map(fila => fila.slice());
+      gridGuardado[2][2] = true;
+      patronActivo = { nombre: NOMBRES_PATRON.personalizado, clave: 'personalizado', grid: gridGuardado };
+      aplicarPatronActivo();
+      guardarPatronActivo();
+      cerrarModalDibujo();
+      refrescarVerificacionSiHayTablaVisible();
+    }
+
+    function inicializarTableroBalotas() {
+      const grid = document.getElementById('tablero-balotas-grid');
+      grid.innerHTML = '';
+
+      const letras = ['B', 'I', 'N', 'G', 'O'];
+      const coloresLetra = ['letraB', 'letraI', 'letraN', 'letraG', 'letraO'];
+
+      for (let col = 0; col < 5; col++) {
+        const colDiv = document.createElement('div');
+        colDiv.className = "flex flex-col gap-2";
+
+        const header = document.createElement('div');
+        header.className = `bg-${coloresLetra[col]} rounded-lg text-center font-display font-black text-lg md:text-xl py-2 shadow text-white`;
+        header.textContent = letras[col];
+        colDiv.appendChild(header);
+
+        const min = col * 15 + 1;
+        const max = min + 14;
+
+        for (let i = min; i <= max; i++) {
+          const celda = document.createElement('div');
+          celda.id = `balota-btn-${i}`;
+          celda.className = "w-full py-2.5 rounded-lg text-sm font-bold bg-gridBg/60 text-purple-300 transition flex items-center justify-center select-none";
+          celda.innerText = i;
+          colDiv.appendChild(celda);
+        }
+        grid.appendChild(colDiv);
+      }
+      actualizarTableroUI();
+    }
+
+    function sacarBalotaAleatoria() {
+      if (bolasCantadas.length >= 75) {
+        alert("¡Ya se han cantado las 75 balotas!");
+        return;
+      }
+      let disponible = [];
+      for (let i = 1; i <= 75; i++) {
+        if (!bolasCantadas.includes(i)) disponible.push(i);
+      }
+      let rand = disponible[Math.floor(Math.random() * disponible.length)];
+      bolasCantadas.push(rand);
+      actualizarTableroUI(true);
+      guardarBolasCantadas();
+    }
+
+    function actualizarTableroUI(animar) {
+      const ultima = bolasCantadas[bolasCantadas.length - 1];
+      const elLetra = document.getElementById('balota-letra');
+      const elNumero = document.getElementById('balota-numero');
+      const circulo = document.getElementById('balota-actual-circulo');
+      const coloresPorLetra = { B: 'letraB', I: 'letraI', N: 'letraN', G: 'letraG', O: 'letraO' };
+
+      const baseCirculo = "w-48 h-48 md:w-56 md:h-56 mx-auto rounded-full flex flex-col items-center justify-center border-4 border-white/10 shadow-2xl transition-colors";
+
+      if (ultima) {
+        let letra = 'B';
+        if (ultima > 15) letra = 'I';
+        if (ultima > 30) letra = 'N';
+        if (ultima > 45) letra = 'G';
+        if (ultima > 60) letra = 'O';
+        elLetra.textContent = letra;
+        elNumero.textContent = ultima;
+        circulo.className = `bg-${coloresPorLetra[letra]} ${baseCirculo}`;
+        if (animar) {
+          circulo.classList.remove('anim-nueva');
+          void circulo.offsetWidth;
+          circulo.classList.add('anim-nueva');
+        }
+      } else {
+        elLetra.textContent = '—';
+        elNumero.textContent = '--';
+        circulo.className = `bg-brandCard border-purple-800/40 ${baseCirculo}`;
+      }
+
+      document.getElementById('contador-salidas').textContent = `${bolasCantadas.length} de 75 salieron`;
+      document.getElementById('contador-restantes').textContent = `${75 - bolasCantadas.length} balotas por sacar`;
+
+      const btnSacar = document.getElementById('btn-sacar-balota');
+      if (bolasCantadas.length >= 75) {
+        btnSacar.disabled = true;
+        btnSacar.textContent = '¡JUEGO TERMINADO!';
+        btnSacar.classList.add('opacity-60', 'cursor-not-allowed');
+      } else {
+        btnSacar.disabled = false;
+        btnSacar.textContent = '¡SACAR BALOTA!';
+        btnSacar.classList.remove('opacity-60', 'cursor-not-allowed');
+      }
+
+      for (let i = 1; i <= 75; i++) {
+        const celda = document.getElementById(`balota-btn-${i}`);
+        if (celda) {
+          if (bolasCantadas.includes(i)) {
+            celda.className = "w-full py-2.5 rounded-lg text-sm font-black bg-brandOrange text-white shadow-lg transform scale-[1.02] select-none";
+          } else {
+            celda.className = "w-full py-2.5 rounded-lg text-sm font-bold bg-gridBg/60 text-purple-300 select-none";
+          }
+        }
+      }
+
+      const elHistorial = document.getElementById('historial-reciente');
+      if (bolasCantadas.length > 1) {
+        const anteriores = bolasCantadas.slice(0, -1).reverse().slice(0, 5);
+        elHistorial.innerHTML = `<div class="flex gap-2 flex-wrap">${anteriores.map(n => `<span class="px-2.5 py-1 bg-purple-950/80 border border-purple-800/50 rounded-md font-bold text-amber-300">${n}</span>`).join('')}</div>`;
+      } else {
+        elHistorial.innerText = "Aún no hay balotas anteriores";
+      }
+
+      refrescarVerificacionSiHayTablaVisible();
+    }
+
+    // Si ya se estaba mostrando el resultado de una tabla, la vuelve a calcular
+    // (se usa tras sacar una balota y también tras cambiar la modalidad de juego,
+    // para que el veredicto nunca quede desactualizado).
+    function refrescarVerificacionSiHayTablaVisible() {
+      if (document.getElementById('input-id-tabla').value.trim() !== '' && document.getElementById('resultado-verificacion').innerHTML !== '') {
+        verificarTabla();
+      }
+    }
+
+    function reiniciarJuego() {
+      if (confirm("¿Deseas reiniciar el tablero de balotas?")) {
+        bolasCantadas = [];
+        actualizarTableroUI();
+        guardarBolasCantadas();
+      }
+    }
+
+    function importarTablasJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const data = JSON.parse(evt.target.result);
+          if (!Array.isArray(data)) throw new Error('El archivo no contiene una lista de tablas.');
+
+          tablasImportadas = {};
+          data.forEach(t => {
+            if (t && t.id !== undefined && Array.isArray(t.columnas)) {
+              tablasImportadas[String(t.id)] = t.columnas;
+            }
+          });
+
+          guardarTablasImportadas();
+          actualizarInfoTablasImportadas();
+        } catch (err) {
+          alert('El archivo no tiene el formato esperado. Debe ser el JSON exportado desde el botón "📥 Exportar Tablas" del módulo de Diseño.');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function actualizarInfoTablasImportadas() {
+      const total = Object.keys(tablasImportadas).length;
+      const el = document.getElementById('info-tablas-importadas');
+      el.textContent = total > 0
+        ? `✅ ${total} tabla${total === 1 ? '' : 's'} cargada${total === 1 ? '' : 's'} y lista${total === 1 ? '' : 's'} para verificar.`
+        : 'Aún no has importado ningún archivo de tablas.';
+    }
+
+    function verificarTabla() {
+      const idInput = document.getElementById('input-id-tabla');
+      const id = idInput.value.trim();
+      const resultado = document.getElementById('resultado-verificacion');
+
+      if (!id) {
+        resultado.innerHTML = '<p class="text-xs text-purple-400">Escribe el número de tabla a verificar.</p>';
+        return;
+      }
+
+      const columnas = tablasImportadas[id] || tablasImportadas[String(parseInt(id, 10))];
+      if (!columnas) {
+        resultado.innerHTML = `<div class="bg-rose-950/40 border border-rose-700/50 rounded-xl p-3 text-center"><p class="text-sm text-rose-300 font-bold">⚠️ No se encontró la tabla #${id}.</p><p class="text-xs text-rose-400/80 mt-1">Verifica el número o que importaste el archivo correcto.</p></div>`;
+        return;
+      }
+
+      const matriz = [];
+      for (let f = 0; f < 5; f++) {
+        const fila = [];
+        for (let c = 0; c < 5; c++) {
+          const esLibre = (f === 2 && c === 2);
+          const numero = esLibre ? null : columnas[c][f];
+          const marcada = esLibre || bolasCantadas.includes(numero);
+          fila.push({ numero, marcada, esLibre });
+        }
+        matriz.push(fila);
+      }
+
+      // Se evalúa ÚNICAMENTE contra la modalidad de juego activa, no contra cualquier
+      // línea o figura posible. Para "Línea Horizontal" / "Línea Vertical" se acepta
+      // CUALQUIER fila o columna completa (no solo una fija), igual que en un bingo real;
+      // para el resto de modalidades (Cartón Lleno, L, Cuadrado, Esquinas, Personalizado)
+      // se exige la figura exacta configurada en patronActivo.grid.
+      let patron; // grid 5x5 booleano que se usará para pintar y evaluar
+      let esGanadora = false;
+
+      if (patronActivo.clave === 'horizontal') {
+        let filaGanadora = -1;
+        for (let f = 0; f < 5; f++) {
+          if (matriz[f].every(cel => cel.marcada)) { filaGanadora = f; break; }
+        }
+        if (filaGanadora === -1) {
+          // ninguna fila completa aún: se muestra como referencia la más avanzada
+          let mejorProgreso = -1;
+          for (let f = 0; f < 5; f++) {
+            const avance = matriz[f].filter(cel => cel.marcada).length;
+            if (avance > mejorProgreso) { mejorProgreso = avance; filaGanadora = f; }
+          }
+        } else {
+          esGanadora = true;
+        }
+        patron = Array.from({ length: 5 }, (_, f) => Array(5).fill(f === filaGanadora));
+      } else if (patronActivo.clave === 'vertical') {
+        let colGanadora = -1;
+        for (let c = 0; c < 5; c++) {
+          if (matriz.every(fila => fila[c].marcada)) { colGanadora = c; break; }
+        }
+        if (colGanadora === -1) {
+          let mejorProgreso = -1;
+          for (let c = 0; c < 5; c++) {
+            const avance = matriz.filter(fila => fila[c].marcada).length;
+            if (avance > mejorProgreso) { mejorProgreso = avance; colGanadora = c; }
+          }
+        } else {
+          esGanadora = true;
+        }
+        patron = Array.from({ length: 5 }, () => Array.from({ length: 5 }, (_, c) => c === colGanadora));
+      } else {
+        // Cartón Lleno, Figura en L, Cuadrado, Cuatro Esquinas, Personalizado: figura fija
+        patron = patronActivo.grid;
+      }
+
+      let requeridas = 0;
+      let cumplidas = 0;
+      const numerosFaltantes = [];
+
+      for (let f = 0; f < 5; f++) {
+        for (let c = 0; c < 5; c++) {
+          if (patron[f][c]) {
+            requeridas++;
+            if (matriz[f][c].marcada) {
+              cumplidas++;
+            } else {
+              numerosFaltantes.push(matriz[f][c].numero);
+            }
+          }
+        }
+      }
+
+      // Para las modalidades de figura fija, "ganadora" se determina por cumplir el 100%.
+      // Para horizontal/vertical ya se determinó arriba (cualquier fila/columna completa).
+      if (patronActivo.clave !== 'horizontal' && patronActivo.clave !== 'vertical') {
+        esGanadora = requeridas > 0 && cumplidas === requeridas;
+      }
+
+      let gridHTML = '<div class="grid grid-cols-5 gap-1.5 max-w-xs mx-auto mb-4">';
+      matriz.flat().forEach((cel, idx) => {
+        const f = Math.floor(idx / 5);
+        const c = idx % 5;
+        const perteneceAlPatron = patron[f][c];
+
+        let clases;
+        if (perteneceAlPatron && cel.marcada) {
+          clases = 'bg-brandOrange text-white shadow ring-2 ring-white/60'; // requerida y ya cantada
+        } else if (perteneceAlPatron && !cel.marcada) {
+          clases = 'bg-gridBg/60 text-purple-200 ring-2 ring-dashed ring-amber-400/70'; // requerida, aún falta
+        } else if (!perteneceAlPatron && cel.marcada) {
+          clases = 'bg-gridBg/40 text-purple-400'; // cantada pero no cuenta para esta modalidad
+        } else {
+          clases = 'bg-gridBg/20 text-purple-500/60'; // no cantada y no cuenta
+        }
+
+        gridHTML += `<div class="aspect-square rounded-lg flex items-center justify-center text-xs font-bold transition ${clases}">${cel.esLibre ? 'FREE' : cel.numero}</div>`;
+      });
+      gridHTML += '</div>';
+
+      let veredictoHTML;
+      if (esGanadora) {
+        veredictoHTML = `<div class="bg-green-900/30 border-2 border-green-500 rounded-xl p-4 text-center">
+          <p class="text-xl font-display font-black text-green-400 mb-1">✅ ¡BINGO VÁLIDO!</p>
+          <p class="text-xs text-green-300">Cumple la modalidad activa: <strong>${patronActivo.nombre}</strong></p>
+        </div>`;
+      } else {
+        veredictoHTML = `<div class="bg-rose-950/40 border-2 border-rose-600/70 rounded-xl p-4 text-center">
+          <p class="text-lg font-display font-black text-rose-300 mb-1">❌ Faltan números</p>
+          <p class="text-xs text-rose-300/90 mb-1">Modalidad activa: <strong>${patronActivo.nombre}</strong> — ${cumplidas}/${requeridas} casillas cumplidas</p>
+          ${numerosFaltantes.length > 0 ? `<p class="text-xs text-rose-200">Faltan: ${numerosFaltantes.join(', ')}</p>` : ''}
+        </div>`;
+      }
+
+      resultado.innerHTML = `<p class="text-xs text-purple-400 mb-2 text-center">Tabla #${String(id).padStart(4, '0')}</p>` + gridHTML + veredictoHTML;
+    }
+
+    window.onload = function() {
+      inicializarTableroBalotas();
+      actualizarInfoTablasImportadas();
+      aplicarPatronActivo();
+    };
+  </script>
+</body>
+</html>

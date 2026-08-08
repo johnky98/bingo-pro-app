@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bingo Pro - Panel de Diseño de Tablas</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brandDark: '#1E0A47',
+            brandPurple: '#2E1065',
+            brandOrange: '#F5711B',
+            brandGold: '#C9982B',
+            brandCream: '#EDE7D9',
+            brandCreamLight: '#F7F3E8',
+          },
+          fontFamily: {
+            display: ['Arial Black', 'Arial', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .pagina-impresion {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      gap: 16px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 1rem;
+      padding: 24px;
+      max-width: 850px;
+      margin: 0 auto 2rem auto;
+      box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.5);
+    }
+
+    @media print {
+      @page {
+        size: letter;
+        margin: 0;
+      }
+      body * { visibility: hidden !important; }
+      #area-impresion, #area-impresion * { visibility: visible !important; }
+      #area-impresion {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: transparent !important;
+      }
+      .pagina-impresion {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        grid-template-rows: repeat(2, 1fr) !important;
+        gap: 6mm !important;
+        width: 8.5in !important;
+        height: 11in !important;
+        padding: 4mm !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        box-sizing: border-box !important;
+        page-break-after: always !important;
+        break-after: page !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        overflow: hidden !important;
+        margin: 0 !important;
+        max-width: none !important;
+      }
+      .pagina-impresion:last-child {
+        page-break-after: auto !important;
+        break-after: auto !important;
+      }
+      .carton-print-item {
+        width: 100% !important;
+        height: 100% !important;
+        max-height: 130mm !important;
+        box-sizing: border-box !important;
+      }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen font-sans flex flex-col">
+
+  <!-- ENCABEZADO -->
+  <header class="bg-brandDark border-b border-purple-900/50 p-4 sticky top-0 z-50 shadow-lg">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <a href="../index.html" class="bg-slate-800 hover:bg-slate-700 text-xs text-purple-300 hover:text-white px-3 py-2 rounded-lg border border-slate-700 transition">
+          &larr; Volver al Menú
+        </a>
+        <div class="bg-brandOrange text-white font-display font-black text-xl px-3 py-1 rounded shadow">1</div>
+        <div>
+          <h1 class="font-display font-bold text-xl tracking-wide text-white">BINGO PRO - MÓDULO DISEÑO</h1>
+          <p class="text-xs text-purple-300">Generador & Personalizador de Cartones</p>
+        </div>
+      </div>
+      
+      <!-- SUBMENÚ DE NAVEGACIÓN -->
+      <nav class="flex bg-purple-950/80 p-1 rounded-xl border border-purple-800/40">
+        <button id="btn-tab-diseno" onclick="switchTab('diseno')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 bg-brandOrange text-white shadow">
+          🎨 Generador
+        </button>
+        <button id="btn-tab-subir" onclick="switchTab('subir')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 text-purple-300 hover:text-white">
+          📤 Subir Plantilla
+        </button>
+        <button id="btn-tab-imprimir" onclick="switchTab('imprimir')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 text-purple-300 hover:text-white">
+          🖨️ Imprimir
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6">
+
+    <!-- PESTAÑA 1: GENERADOR -->
+    <section id="sec-diseno" class="tab-content grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div class="lg:col-span-6 bg-slate-800/90 border border-slate-700/80 rounded-2xl p-6 shadow-xl space-y-5">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-purple-400 mb-2">Plantillas (1-Clic)</label>
+          <div class="grid grid-cols-3 gap-2">
+            <button onclick="aplicarPlantilla('politica')" class="px-3 py-2 bg-purple-950 hover:bg-purple-900 border border-purple-700/50 rounded-lg text-xs font-bold text-amber-300 transition">🏛️ Política</button>
+            <button onclick="aplicarPlantilla('corporativa')" class="px-3 py-2 bg-slate-900 hover:bg-slate-950 border border-slate-700 rounded-lg text-xs font-bold text-cyan-300 transition">🏢 Corporativa</button>
+            <button onclick="aplicarPlantilla('festiva')" class="px-3 py-2 bg-rose-950 hover:bg-rose-900 border border-rose-700/50 rounded-lg text-xs font-bold text-rose-300 transition">🎉 Festiva</button>
+          </div>
+        </div>
+
+        <hr class="border-slate-700">
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-purple-400 mb-1">Formato</label>
+            <select id="cfg-formato" onchange="actualizarVistaPrevia()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white outline-none">
+              <option value="5x5" selected>5×5 Clásico</option>
+              <option value="4x4">4×4 Rápido</option>
+              <option value="3x3">3×3 Mini</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-purple-400 mb-1">Escala Números: <span id="val-scale-gen">100%</span></label>
+            <input type="range" id="cfg-scale-gen" min="70" max="130" value="100" oninput="actualizarVistaPrevia()" class="w-full">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-purple-400 mb-2">Paleta de Colores</label>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div><span class="text-[10px] text-slate-400 block">Fondo</span><input type="color" id="cfg-color-fondo" value="#2E1065" onchange="actualizarVistaPrevia()" class="w-full h-8 rounded cursor-pointer"></div>
+            <div><span class="text-[10px] text-slate-400 block">Encabezado</span><input type="color" id="cfg-color-encabezado" value="#F5711B" onchange="actualizarVistaPrevia()" class="w-full h-8 rounded cursor-pointer"></div>
+            <div><span class="text-[10px] text-slate-400 block">Casillas</span><input type="color" id="cfg-color-casilla" value="#EDE7D9" onchange="actualizarVistaPrevia()" class="w-full h-8 rounded cursor-pointer"></div>
+            <div><span class="text-[10px] text-slate-400 block">Números</span><input type="color" id="cfg-color-texto" value="#1E0A47" onchange="actualizarVistaPrevia()" class="w-full h-8 rounded cursor-pointer"></div>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <label class="block text-xs font-bold uppercase tracking-wider text-purple-400">Logo & Posición</label>
+          <input type="file" id="cfg-logo-file" accept="image/*" onchange="cargarLogo(event)" class="block w-full text-xs text-slate-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brandOrange file:text-white cursor-pointer">
+          <div class="grid grid-cols-2 gap-2">
+            <select id="cfg-posicion-logo" onchange="actualizarVistaPrevia()" class="bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white outline-none">
+              <option value="superior">Encabezado (Superior)</option>
+              <option value="marca-agua">Marca de Agua (Centro)</option>
+              <option value="pie">Pie de Página</option>
+            </select>
+            <div>
+              <span class="text-[10px] text-slate-400 block">Tamaño Logo: <span id="val-logo-size-gen">40px</span></span>
+              <input type="range" id="cfg-logo-size-gen" min="20" max="100" value="40" oninput="actualizarVistaPrevia()" class="w-full">
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-purple-400 mb-1">Título de Campaña</label>
+          <input type="text" id="cfg-titulo" value="¡ACTITUD POSITIVA!" oninput="actualizarVistaPrevia()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white outline-none">
+        </div>
+      </div>
+
+      <!-- PREVIEW -->
+      <div class="lg:col-span-6 flex flex-col items-center justify-start bg-slate-950/60 border border-slate-800 rounded-2xl p-6 shadow-inner">
+        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Vista Previa Generador</span>
+        <div id="carton-preview" class="w-full max-w-md aspect-[3/4] rounded-2xl p-5 shadow-2xl flex flex-col justify-between relative overflow-hidden" style="background-color: #2E1065;">
+          <div id="prev-watermark" class="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none hidden">
+            <img id="img-watermark" class="max-w-[70%] max-h-[70%] object-contain">
+          </div>
+          <div class="relative z-10 flex flex-col items-center gap-2 mb-2">
+            <div id="prev-logo-container-sup" class="flex items-center justify-center hidden" style="height: 40px;">
+              <img id="img-logo-sup" class="h-full object-contain">
+            </div>
+            <h2 id="prev-titulo" class="font-display font-black text-xl text-center text-white drop-shadow">¡ACTITUD POSITIVA!</h2>
+            <div id="prev-bingo-header" class="grid grid-cols-5 gap-1.5 w-full text-center font-display font-black text-xl py-1 rounded-lg text-white shadow" style="background-color: #F5711B;">
+              <div>B</div><div>I</div><div>N</div><div>G</div><div>O</div>
+            </div>
+          </div>
+          <div id="prev-grid" class="relative z-10 grid grid-cols-5 gap-1.5 flex-1 my-auto"></div>
+          <div class="relative z-10 mt-2 pt-2 border-t border-white/20 flex items-center justify-between text-[10px] text-white/80">
+            <span>ID TABLA: #0001</span>
+            <div id="prev-logo-container-pie" class="hidden" style="height: 20px;"><img id="img-logo-pie" class="h-full object-contain"></div>
+            <span>BINGO PRO</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PESTAÑA 2: SUBIR TABLA -->
+    <section id="sec-subir" class="tab-content hidden grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div class="lg:col-span-5 bg-slate-800/90 border border-slate-700/80 rounded-2xl p-6 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
+        <h2 class="text-base font-bold text-white flex items-center gap-2">
+          <span>📤</span> Personalizar Tabla Subida
+        </h2>
+
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-purple-400 mb-1">1. Imagen de Fondo de Tabla</label>
+          <input type="file" id="subir-diseno-file" accept="image/*" onchange="cargarFondoPersonalizado(event)" class="block w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-brandOrange file:text-white cursor-pointer">
+        </div>
+
+        <hr class="border-slate-700">
+
+        <div class="space-y-2">
+          <label class="block text-xs font-bold uppercase tracking-wider text-purple-400">2. Subir Logo (Opcional)</label>
+          <input type="file" id="subir-logo-file" accept="image/*" onchange="cargarLogoCustom(event)" class="block w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-purple-600 file:text-white cursor-pointer">
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <div>
+              <span class="text-[10px] text-slate-300 block mb-1">Posición Logo</span>
+              <select id="custom-logo-pos" onchange="actualizarEstilosCustom()" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white outline-none">
+                <option value="superior" selected>Superior (Encabezado)</option>
+                <option value="marca-agua">Marca de Agua (Centro)</option>
+                <option value="pie">Pie de Página</option>
+              </select>
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-300 block mb-1">Tamaño Logo: <span id="val-custom-logo-size">40px</span></span>
+              <input type="range" id="custom-logo-size" min="15" max="120" value="40" oninput="actualizarEstilosCustom()" class="w-full">
+            </div>
+          </div>
+        </div>
+
+        <hr class="border-slate-700">
+
+        <div class="space-y-3">
+          <label class="block text-xs font-bold uppercase tracking-wider text-purple-400">3. Textos y Cabecera (B I N G O)</label>
+
+          <div class="flex items-center gap-2 bg-slate-900/80 p-2 rounded-lg border border-slate-700">
+            <input type="checkbox" id="custom-show-title" onchange="actualizarEstilosCustom()" class="w-4 h-4 accent-brandOrange rounded cursor-pointer">
+            <label for="custom-show-title" class="text-xs text-slate-200 cursor-pointer font-medium">Mostrar Título Superior</label>
+          </div>
+          <input type="text" id="custom-titulo-txt" value="MI GRAN BINGO" oninput="actualizarEstilosCustom()" placeholder="Escribe tu título..." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white outline-none">
+
+          <div class="flex items-center gap-2 bg-slate-900/80 p-2 rounded-lg border border-slate-700">
+            <input type="checkbox" id="custom-show-bingo-header" onchange="actualizarEstilosCustom()" class="w-4 h-4 accent-brandOrange rounded cursor-pointer">
+            <label for="custom-show-bingo-header" class="text-xs text-slate-200 cursor-pointer font-medium">Mostrar Letras B I N G O</label>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <span class="text-[10px] text-slate-300 block mb-1">Color Fondo BINGO</span>
+              <input type="color" id="custom-color-bingo-bg" value="#F5711B" onchange="actualizarEstilosCustom()" class="w-full h-7 rounded cursor-pointer bg-transparent">
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-300 block mb-1">Color Texto BINGO</span>
+              <input type="color" id="custom-color-bingo-text" value="#ffffff" onchange="actualizarEstilosCustom()" class="w-full h-7 rounded cursor-pointer bg-transparent">
+            </div>
+          </div>
+        </div>
+
+        <hr class="border-slate-700">
+
+        <div class="space-y-3">
+          <label class="block text-xs font-bold uppercase tracking-wider text-purple-400">4. Cuadrícula y Números</label>
+          
+          <div class="flex items-center gap-2 bg-slate-900/80 p-2 rounded-lg border border-slate-700">
+            <input type="checkbox" id="custom-show-box" checked onchange="actualizarEstilosCustom()" class="w-4 h-4 accent-brandOrange rounded cursor-pointer">
+            <label for="custom-show-box" class="text-xs text-slate-200 cursor-pointer font-medium">Mostrar fondo y bordes de casillas</label>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 pt-1">
+            <div>
+              <span class="text-[10px] text-slate-300 block mb-1">Números</span>
+              <input type="color" id="custom-color-num" value="#1E0A47" onchange="actualizarEstilosCustom()" class="w-full h-7 rounded cursor-pointer bg-transparent">
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-300 block mb-1">Casillas</span>
+              <input type="color" id="custom-color-box" value="#ffffff" onchange="actualizarEstilosCustom()" class="w-full h-7 rounded cursor-pointer bg-transparent">
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-300 block mb-1">Líneas</span>
+              <input type="color" id="custom-color-border" value="#94A3B8" onchange="actualizarEstilosCustom()" class="w-full h-7 rounded cursor-pointer bg-transparent">
+            </div>
+          </div>
+
+          <div>
+            <span class="text-[10px] text-slate-300 block mb-1">Opacidad Casillas: <span id="val-opacidad">85%</span></span>
+            <input type="range" id="custom-opacidad" min="0" max="100" value="85" oninput="actualizarEstilosCustom()" class="w-full">
+          </div>
+
+          <label class="block text-xs font-bold uppercase tracking-wider text-purple-400 pt-2">5. Ajuste de Posición</label>
+
+          <div>
+            <span class="text-[10px] text-slate-300 block mb-1">Posición Vertical (Bajar/Subir): <span id="val-pos-y">32%</span></span>
+            <input type="range" id="custom-pos-y" min="5" max="60" value="32" oninput="actualizarEstilosCustom()" class="w-full">
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <span class="text-[10px] text-slate-300 block mb-1">Ancho Tabla: <span id="val-width">84%</span></span>
+              <input type="range" id="custom-width" min="40" max="98" value="84" oninput="actualizarEstilosCustom()" class="w-full">
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-300 block mb-1">Alto Tabla: <span id="val-height">55%</span></span>
+              <input type="range" id="custom-height" min="20" max="80" value="55" oninput="actualizarEstilosCustom()" class="w-full">
+            </div>
+          </div>
+
+          <div>
+            <span class="text-[10px] text-slate-300 block mb-1">Tamaño Números: <span id="val-font-size">14px</span></span>
+            <input type="range" id="custom-font-size" min="10" max="28" value="14" oninput="actualizarEstilosCustom()" class="w-full">
+          </div>
+        </div>
+
+        <hr class="border-slate-700">
+
+        <button onclick="usarSubidaEImprimir()" class="w-full py-3 bg-green-600 hover:bg-green-500 text-white font-bold rounded-xl text-sm shadow-lg transition flex items-center justify-center gap-2">
+          <span>🚀 Usar este Diseño e Imprimir</span>
+        </button>
+      </div>
+
+      <!-- PREVIEW CUSTOM -->
+      <div class="lg:col-span-7 flex flex-col items-center justify-start bg-slate-950/60 border border-slate-800 rounded-2xl p-6 shadow-inner">
+        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Ajuste de Calce Exacto</span>
+        
+        <div id="carton-custom-container" class="relative w-full max-w-md aspect-[3/4] bg-slate-900 rounded-xl border border-dashed border-slate-700 flex items-center justify-center overflow-hidden">
+          <p id="txt-sin-imagen" class="text-xs text-slate-500 text-center p-6">Sube una imagen para previsualizar y calibrar la posición exacta.</p>
+          <img id="img-fondo-custom" class="absolute inset-0 w-full h-full object-cover hidden" alt="Fondo Custom">
+          
+          <div id="custom-watermark-wrap" class="absolute inset-0 flex items-center justify-center opacity-15 pointer-events-none hidden">
+            <img id="img-custom-watermark" class="object-contain" style="max-width: 70%; max-height: 70%;">
+          </div>
+
+          <div id="custom-logo-sup-wrap" class="absolute top-3 left-1/2 -translate-x-1/2 z-20 hidden">
+            <img id="img-custom-logo-sup" class="object-contain">
+          </div>
+
+          <div id="custom-titulo-wrap" class="absolute top-12 left-0 w-full text-center z-20 hidden px-4">
+            <h2 id="custom-titulo-text" class="font-display font-black text-lg text-white drop-shadow-md"></h2>
+          </div>
+
+          <div id="custom-bingo-header-wrap" class="absolute left-1/2 -translate-x-1/2 z-20 hidden px-6" style="width: 84%; top: 20%;">
+            <div id="custom-bingo-header-box" class="grid grid-cols-5 gap-1.5 w-full text-center font-display font-black text-lg py-1 rounded-lg shadow">
+              <div>B</div><div>I</div><div>N</div><div>G</div><div>O</div>
+            </div>
+          </div>
+
+          <div id="grid-overlay-custom" class="absolute grid grid-cols-5 gap-1.5 p-2 rounded-xl hidden transition-all box-border z-10" style="width: 84%; height: 55%; top: 32%; left: 50%; transform: translateX(-50%);"></div>
+
+          <div id="custom-logo-pie-wrap" class="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 hidden">
+            <img id="img-custom-logo-pie" class="object-contain">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PESTAÑA 3: IMPRIMIR TABLA -->
+    <section id="sec-imprimir" class="tab-content hidden space-y-6">
+      <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row items-center justify-between gap-4">
+        <div>
+          <h2 class="text-lg font-bold text-white">🖨️ Centro de Impresión & Vista Detallada</h2>
+          <p class="text-xs text-slate-300">Visualiza las páginas completas (organizadas en hojas de 4 tablas) para detallar cada diseño antes de imprimir.</p>
+        </div>
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+          <div class="flex flex-col">
+            <label class="text-[10px] uppercase font-bold text-purple-400 mb-1">Cantidad de Tablas:</label>
+            <div class="flex items-center gap-2">
+              <select id="cant-imprimir-preset" onchange="manejarCambioCantidad()" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs font-bold text-amber-400 outline-none">
+                <option value="10" selected>🎁 10 Tablas (Prueba Gratis)</option>
+                <option value="50">50 Tablas</option>
+                <option value="200">200 Tablas</option>
+                <option value="500">500 Tablas</option>
+                <option value="custom">✏️ Personalizado...</option>
+              </select>
+
+              <input type="number" id="cant-imprimir-custom" min="1" max="2000" value="10" oninput="renderizarLoteImpresion()" placeholder="Cant." class="hidden w-24 bg-slate-900 border border-amber-500/80 rounded-lg px-3 py-2 text-xs font-bold text-amber-400 outline-none">
+            </div>
+          </div>
+
+          <div class="flex flex-col justify-end text-right sm:border-l sm:border-slate-700 sm:pl-3">
+            <span class="text-[10px] text-slate-400">Estimación Papel:</span>
+            <span id="info-hojas-totales" class="text-xs font-bold text-green-400">3 Hojas Carta</span>
+          </div>
+
+          <button onclick="regenerarLoteManual()" title="Genera nuevos números aleatorios para este mismo lote" class="px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl text-sm shadow-lg transition flex items-center justify-center gap-2 mt-2 sm:mt-0">
+            <span>🔄 Nuevo Lote</span>
+          </button>
+
+          <button onclick="exportarTablasJSON()" title="Descarga un archivo JSON con el ID y los números exactos de cada tabla, para verificar ganadores en el módulo de Balotera" class="px-4 py-2.5 bg-purple-700 hover:bg-purple-600 text-white font-bold rounded-xl text-sm shadow-lg transition flex items-center justify-center gap-2 mt-2 sm:mt-0">
+            <span>📥 Exportar Tablas</span>
+          </button>
+
+          <button onclick="generarEImprimir()" class="px-5 py-2.5 bg-brandOrange hover:bg-orange-600 text-white font-bold rounded-xl text-sm shadow-lg transition flex items-center justify-center gap-2 mt-2 sm:mt-0">
+            <span>🖨️ Imprimir / Guardar PDF</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl px-6 py-4 shadow-xl flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
+        <label class="flex items-center gap-2.5 cursor-pointer">
+          <input type="checkbox" id="cfg-incluir-qr" checked onchange="onCambioIncluirQR()" class="w-4 h-4 accent-brandOrange">
+          <span class="text-sm text-white font-semibold">📱 Incluir QR de registro en cada tarjeta</span>
+        </label>
+        <p class="text-[11px] text-slate-400 max-w-xl">
+          Cada QR abre esa misma tarjeta en <code class="text-amber-300">modulo_juego_online</code> (mismo ID, mismos números) y pide registro
+          (nombre, celular, comuna) antes de mostrarla. Requiere conexión a internet al momento de ver/imprimir (el QR se genera vía un
+          servicio externo de imágenes) y que <code class="text-amber-300">modulo_juego_online</code> esté publicado junto a este módulo.
+        </p>
+      </div>
+
+      <div id="area-impresion" class="space-y-8"></div>
+    </section>
+
+  </main>
+
+  <script>
+    let modoOrigen = 'generador'; 
+    let ultimoLoteTablas = []; // [{ id, columnas }] del último lote renderizado, usado para exportar a JSON
+    let configDiseno = {
+      formato: '5x5',
+      colorFondo: '#2E1065',
+      colorEncabezado: '#F5711B',
+      colorCasilla: '#EDE7D9',
+      colorTexto: '#1E0A47',
+      titulo: '¡ACTITUD POSITIVA!',
+      posicionLogo: 'superior',
+      logoDataUrl: null,
+      logoSizeGen: 40,
+      fondoCustomDataUrl: null,
+      customLogoDataUrl: null,
+      customLogoPos: 'superior',
+      customLogoSize: 40,
+      customShowTitle: false,
+      customTituloTxt: 'MI GRAN BINGO',
+      customShowBingoHeader: false,
+      customColorBingoBg: '#F5711B',
+      customColorBingoText: '#ffffff',
+      customShowBox: true,
+      customColorNum: '#1E0A47',
+      customColorBox: '#ffffff',
+      customColorBorder: '#94A3B8',
+      customOpacidad: 0.85,
+      customPosY: 32,
+      customWidth: 84,
+      customHeight: 55,
+      customFontSize: 14,
+      genScale: 100,
+      incluirQR: true
+    };
+
+    function onCambioIncluirQR() {
+      configDiseno.incluirQR = document.getElementById('cfg-incluir-qr').checked;
+      pintarLoteEnPantalla();
+    }
+
+    // ============================================================
+    // QR DE REGISTRO POR TARJETA
+    // Usa EXACTAMENTE la misma codificación que modulo_juego_online
+    // (codificarCartonURL/decodificarCartonURL), para que el QR impreso en
+    // la tarjeta #N abra esa misma tarjeta #N sin pasos de importación.
+    // ============================================================
+    function codificarCartonURL(columnas, numeroJugador) {
+      const json = JSON.stringify({ p: numeroJugador, cols: columnas });
+      const base64 = btoa(unescape(encodeURIComponent(json)));
+      return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+
+    // Calcula la URL de modulo_juego_online asumiendo la estructura de
+    // carpetas hermanas descrita en la arquitectura de Bingo Pro:
+    // bingo-app/modulo_diseno/  y  bingo-app/modulo_juego_online/
+    function urlBaseJuegoOnline() {
+      const aqui = window.location.origin + window.location.pathname;
+      return aqui.replace('/modulo_diseno/', '/modulo_juego_online/');
+    }
+
+    function urlTarjetaQR(idNum, columnas) {
+      const codigo = codificarCartonURL(columnas, idNum);
+      return `${urlBaseJuegoOnline()}?c=${codigo}`;
+    }
+
+    function urlImagenQR(datosURL, tamano) {
+      return `https://api.qrserver.com/v1/create-qr-code/?size=${tamano}x${tamano}&margin=0&data=${encodeURIComponent(datosURL)}`;
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-brandOrange', 'text-white', 'shadow');
+        btn.classList.add('text-purple-300');
+      });
+
+      document.getElementById(`sec-${tabId}`).classList.remove('hidden');
+      const btnActivo = document.getElementById(`btn-tab-${tabId}`);
+      btnActivo.classList.add('bg-brandOrange', 'text-white', 'shadow');
+      btnActivo.classList.remove('text-purple-300');
+
+      if(tabId === 'diseno') modoOrigen = 'generador';
+      if(tabId === 'subir') modoOrigen = 'subida';
+      if(tabId === 'imprimir') renderizarLoteImpresion();
+    }
+
+    function aplicarPlantilla(tipo) {
+      if(tipo === 'politica') {
+        configDiseno.colorFondo = '#1E0A47';
+        configDiseno.colorEncabezado = '#C9982B';
+        configDiseno.colorCasilla = '#F7F3E8';
+        configDiseno.colorTexto = '#2E1065';
+        configDiseno.titulo = '¡UNIDOS POR EL CAMBIO!';
+      } else if(tipo === 'corporativa') {
+        configDiseno.colorFondo = '#0F172A';
+        configDiseno.colorEncabezado = '#0284C7';
+        configDiseno.colorCasilla = '#F8FAFC';
+        configDiseno.colorTexto = '#0F172A';
+        configDiseno.titulo = 'EVENTO CORPORATIVO 2026';
+      } else if(tipo === 'festiva') {
+        configDiseno.colorFondo = '#831843';
+        configDiseno.colorEncabezado = '#F43F5E';
+        configDiseno.colorCasilla = '#FFF1F2';
+        configDiseno.colorTexto = '#831843';
+        configDiseno.titulo = 'GRAN BINGO DE CARIDAD';
+      }
+      
+      document.getElementById('cfg-color-fondo').value = configDiseno.colorFondo;
+      document.getElementById('cfg-color-encabezado').value = configDiseno.colorEncabezado;
+      document.getElementById('cfg-color-casilla').value = configDiseno.colorCasilla;
+      document.getElementById('cfg-color-texto').value = configDiseno.colorTexto;
+      document.getElementById('cfg-titulo').value = configDiseno.titulo;
+
+      actualizarVistaPrevia();
+    }
+
+    function cargarLogo(e) {
+      const file = e.target.files[0];
+      if(file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          configDiseno.logoDataUrl = evt.target.result;
+          actualizarVistaPrevia();
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function cargarLogoCustom(e) {
+      const file = e.target.files[0];
+      if(file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          configDiseno.customLogoDataUrl = evt.target.result;
+          actualizarEstilosCustom();
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function cargarFondoPersonalizado(e) {
+      const file = e.target.files[0];
+      if(file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          configDiseno.fondoCustomDataUrl = evt.target.result;
+          document.getElementById('img-fondo-custom').src = configDiseno.fondoCustomDataUrl;
+          document.getElementById('img-fondo-custom').classList.remove('hidden');
+          document.getElementById('txt-sin-imagen').classList.add('hidden');
+          document.getElementById('grid-overlay-custom').classList.remove('hidden');
+          modoOrigen = 'subida';
+          actualizarEstilosCustom();
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function hexToRgba(hex, alpha) {
+      let c = hex.replace('#', '');
+      if (c.length === 3) c = c.split('').map(x => x + x).join('');
+      const num = parseInt(c, 16);
+      return `rgba(${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}, ${alpha})`;
+    }
+
+    function actualizarEstilosCustom() {
+      configDiseno.customLogoPos = document.getElementById('custom-logo-pos').value;
+      configDiseno.customLogoSize = document.getElementById('custom-logo-size').value;
+      document.getElementById('val-custom-logo-size').innerText = `${configDiseno.customLogoSize}px`;
+
+      configDiseno.customShowTitle = document.getElementById('custom-show-title').checked;
+      configDiseno.customTituloTxt = document.getElementById('custom-titulo-txt').value;
+      configDiseno.customShowBingoHeader = document.getElementById('custom-show-bingo-header').checked;
+      configDiseno.customColorBingoBg = document.getElementById('custom-color-bingo-bg').value;
+      configDiseno.customColorBingoText = document.getElementById('custom-color-bingo-text').value;
+
+      configDiseno.customShowBox = document.getElementById('custom-show-box').checked;
+      configDiseno.customColorNum = document.getElementById('custom-color-num').value;
+      configDiseno.customColorBox = document.getElementById('custom-color-box').value;
+      configDiseno.customColorBorder = document.getElementById('custom-color-border').value;
+      
+      const opacidadVal = document.getElementById('custom-opacidad').value;
+      configDiseno.customOpacidad = opacidadVal / 100;
+      
+      configDiseno.customPosY = document.getElementById('custom-pos-y').value;
+      configDiseno.customWidth = document.getElementById('custom-width').value;
+      configDiseno.customHeight = document.getElementById('custom-height').value;
+      configDiseno.customFontSize = document.getElementById('custom-font-size').value;
+
+      document.getElementById('val-opacidad').innerText = `${opacidadVal}%`;
+      document.getElementById('val-pos-y').innerText = `${configDiseno.customPosY}%`;
+      document.getElementById('val-width').innerText = `${configDiseno.customWidth}%`;
+      document.getElementById('val-height').innerText = `${configDiseno.customHeight}%`;
+      document.getElementById('val-font-size').innerText = `${configDiseno.customFontSize}px`;
+
+      const wrapSup = document.getElementById('custom-logo-sup-wrap');
+      const wrapPie = document.getElementById('custom-logo-pie-wrap');
+      const wrapWm = document.getElementById('custom-watermark-wrap');
+      wrapSup.classList.add('hidden');
+      wrapPie.classList.add('hidden');
+      wrapWm.classList.add('hidden');
+
+      if(configDiseno.customLogoDataUrl) {
+        if(configDiseno.customLogoPos === 'superior') {
+          document.getElementById('img-custom-logo-sup').src = configDiseno.customLogoDataUrl;
+          document.getElementById('img-custom-logo-sup').style.height = `${configDiseno.customLogoSize}px`;
+          wrapSup.classList.remove('hidden');
+        } else if(configDiseno.customLogoPos === 'pie') {
+          document.getElementById('img-custom-logo-pie').src = configDiseno.customLogoDataUrl;
+          document.getElementById('img-custom-logo-pie').style.height = `${configDiseno.customLogoSize}px`;
+          wrapPie.classList.remove('hidden');
+        } else if(configDiseno.customLogoPos === 'marca-agua') {
+          document.getElementById('img-custom-watermark').src = configDiseno.customLogoDataUrl;
+          document.getElementById('img-custom-watermark').style.height = `${configDiseno.customLogoSize * 2}px`;
+          wrapWm.classList.remove('hidden');
+        }
+      }
+
+      const wrapTitulo = document.getElementById('custom-titulo-wrap');
+      if(configDiseno.customShowTitle) {
+        document.getElementById('custom-titulo-text').innerText = configDiseno.customTituloTxt;
+        wrapTitulo.classList.remove('hidden');
+      } else {
+        wrapTitulo.classList.add('hidden');
+      }
+
+      const wrapBingo = document.getElementById('custom-bingo-header-wrap');
+      if(configDiseno.customShowBingoHeader) {
+        const box = document.getElementById('custom-bingo-header-box');
+        box.style.backgroundColor = configDiseno.customColorBingoBg;
+        box.style.color = configDiseno.customColorBingoText;
+        wrapBingo.classList.remove('hidden');
+      } else {
+        wrapBingo.classList.add('hidden');
+      }
+
+      const overlay = document.getElementById('grid-overlay-custom');
+      overlay.style.width = `${configDiseno.customWidth}%`;
+      overlay.style.height = `${configDiseno.customHeight}%`;
+      overlay.style.top = `${configDiseno.customPosY}%`;
+
+      renderizarGridMuestreoCustom();
+    }
+
+    function generarNumeros5x5() {
+      const rangos = [[1, 15], [16, 30], [31, 45], [46, 60], [61, 75]];
+      let columnas = [];
+      for(let i = 0; i < 5; i++) {
+        let nums = [];
+        while(nums.length < 5) {
+          let rand = Math.floor(Math.random() * (rangos[i][1] - rangos[i][0] + 1)) + rangos[i][0];
+          if(!nums.includes(rand)) nums.push(rand);
+        }
+        columnas.push(nums);
+      }
+      return columnas;
+    }
+
+    function actualizarVistaPrevia() {
+      configDiseno.formato = document.getElementById('cfg-formato').value;
+      configDiseno.colorFondo = document.getElementById('cfg-color-fondo').value;
+      configDiseno.colorEncabezado = document.getElementById('cfg-color-encabezado').value;
+      configDiseno.colorCasilla = document.getElementById('cfg-color-casilla').value;
+      configDiseno.colorTexto = document.getElementById('cfg-color-texto').value;
+      configDiseno.posicionLogo = document.getElementById('cfg-posicion-logo').value;
+      configDiseno.logoSizeGen = document.getElementById('cfg-logo-size-gen').value;
+      document.getElementById('val-logo-size-gen').innerText = `${configDiseno.logoSizeGen}px`;
+
+      configDiseno.titulo = document.getElementById('cfg-titulo').value || 'BINGO';
+      configDiseno.genScale = document.getElementById('cfg-scale-gen').value;
+      document.getElementById('val-scale-gen').innerText = `${configDiseno.genScale}%`;
+
+      const carton = document.getElementById('carton-preview');
+      carton.style.backgroundColor = configDiseno.colorFondo;
+
+      document.getElementById('prev-bingo-header').style.backgroundColor = configDiseno.colorEncabezado;
+      document.getElementById('prev-titulo').innerText = configDiseno.titulo;
+
+      const containerSup = document.getElementById('prev-logo-container-sup');
+      const containerPie = document.getElementById('prev-logo-container-pie');
+      const watermark = document.getElementById('prev-watermark');
+
+      containerSup.classList.add('hidden');
+      containerPie.classList.add('hidden');
+      watermark.classList.add('hidden');
+
+      if(configDiseno.logoDataUrl) {
+        if(configDiseno.posicionLogo === 'superior') {
+          containerSup.style.height = `${configDiseno.logoSizeGen}px`;
+          document.getElementById('img-logo-sup').src = configDiseno.logoDataUrl;
+          containerSup.classList.remove('hidden');
+        } else if(configDiseno.posicionLogo === 'pie') {
+          containerPie.style.height = `${configDiseno.logoSizeGen}px`;
+          document.getElementById('img-logo-pie').src = configDiseno.logoDataUrl;
+          containerPie.classList.remove('hidden');
+        } else if(configDiseno.posicionLogo === 'marca-agua') {
+          document.getElementById('img-watermark').src = configDiseno.logoDataUrl;
+          watermark.classList.remove('hidden');
+        }
+      }
+
+      const grid = document.getElementById('prev-grid');
+      grid.innerHTML = '';
+      grid.style.transform = `scale(${configDiseno.genScale / 100})`;
+
+      if(configDiseno.formato === '5x5') {
+        grid.className = "relative z-10 grid grid-cols-5 gap-1.5 flex-1 my-auto transition-transform";
+        const nums = generarNumeros5x5();
+        for(let r = 0; r < 5; r++) {
+          for(let c = 0; c < 5; c++) {
+            const cell = document.createElement('div');
+            cell.className = "aspect-square rounded-lg flex items-center justify-center font-display font-black text-sm sm:text-base shadow-sm border border-black/10";
+            cell.style.backgroundColor = configDiseno.colorCasilla;
+            cell.style.color = configDiseno.colorTexto;
+
+            if(r === 2 && c === 2) {
+              cell.innerText = "FREE";
+              cell.style.fontSize = "10px";
+              cell.style.backgroundColor = configDiseno.colorEncabezado;
+              cell.style.color = "#FFFFFF";
+            } else {
+              cell.innerText = nums[c][r];
+            }
+            grid.appendChild(cell);
+          }
+        }
+      }
+    }
+
+    function renderizarGridMuestreoCustom() {
+      const overlay = document.getElementById('grid-overlay-custom');
+      overlay.innerHTML = '';
+      const nums = generarNumeros5x5();
+      for(let r = 0; r < 5; r++) {
+        for(let c = 0; c < 5; c++) {
+          const cell = document.createElement('div');
+          cell.className = "rounded flex items-center justify-center font-display font-black shadow-sm transition-all";
+          
+          if(configDiseno.customShowBox) {
+            cell.style.backgroundColor = hexToRgba(configDiseno.customColorBox, configDiseno.customOpacidad);
+            cell.style.border = `1.5px solid ${configDiseno.customColorBorder}`;
+          } else {
+            cell.style.backgroundColor = 'transparent';
+            cell.style.border = 'none';
+          }
+
+          cell.style.color = configDiseno.customColorNum;
+          cell.style.fontSize = `${configDiseno.customFontSize}px`;
+          cell.innerText = (r === 2 && c === 2) ? "★" : nums[c][r];
+          overlay.appendChild(cell);
+        }
+      }
+    }
+
+    function usarSubidaEImprimir() {
+      if(!configDiseno.fondoCustomDataUrl) {
+        alert("Por favor selecciona primero una imagen para la tabla.");
+        return;
+      }
+      modoOrigen = 'subida';
+      switchTab('imprimir');
+    }
+
+    function crearElementoCarton(tabla) {
+      const idNum = tabla.id;
+      const numsFijos = tabla.columnas;
+
+      if(modoOrigen === 'subida') {
+        const wrap = document.createElement('div');
+        wrap.className = "carton-print-item relative aspect-[3/4] rounded-xl overflow-hidden shadow border border-slate-700 bg-slate-900 flex items-center justify-center";
+        
+        const img = document.createElement('img');
+        img.src = configDiseno.fondoCustomDataUrl;
+        img.className = "absolute inset-0 w-full h-full object-cover";
+        wrap.appendChild(img);
+
+        if(configDiseno.customLogoDataUrl && configDiseno.customLogoPos === 'marca-agua') {
+          const wmWrap = document.createElement('div');
+          wmWrap.className = "absolute inset-0 flex items-center justify-center opacity-15 pointer-events-none";
+          const imgWm = document.createElement('img');
+          imgWm.src = configDiseno.customLogoDataUrl;
+          imgWm.style.maxHeight = "70%";
+          imgWm.style.maxWidth = "70%";
+          wmWrap.appendChild(imgWm);
+          wrap.appendChild(wmWrap);
+        }
+
+        if(configDiseno.customLogoDataUrl && configDiseno.customLogoPos === 'superior') {
+          const logoWrap = document.createElement('div');
+          logoWrap.className = "absolute top-2 left-1/2 -translate-x-1/2 z-20";
+          const imgLogo = document.createElement('img');
+          imgLogo.src = configDiseno.customLogoDataUrl;
+          imgLogo.style.height = `${Math.round(configDiseno.customLogoSize * 0.8)}px`;
+          logoWrap.appendChild(imgLogo);
+          wrap.appendChild(logoWrap);
+        }
+
+        if(configDiseno.customShowTitle) {
+          const titleWrap = document.createElement('div');
+          titleWrap.className = "absolute top-10 left-0 w-full text-center z-20 px-2";
+          const h2 = document.createElement('h2');
+          h2.className = "font-display font-black text-sm text-white drop-shadow";
+          h2.innerText = configDiseno.customTituloTxt;
+          titleWrap.appendChild(h2);
+          wrap.appendChild(titleWrap);
+        }
+
+        if(configDiseno.customShowBingoHeader) {
+          const bingoWrap = document.createElement('div');
+          bingoWrap.className = "absolute left-1/2 -translate-x-1/2 z-20 px-4";
+          bingoWrap.style.width = `${configDiseno.customWidth}%`;
+          bingoWrap.style.top = `18%`;
+          
+          const box = document.createElement('div');
+          box.className = "grid grid-cols-5 gap-1 w-full text-center font-display font-black text-xs py-0.5 rounded shadow";
+          box.style.backgroundColor = configDiseno.customColorBingoBg;
+          box.style.color = configDiseno.customColorBingoText;
+          box.innerHTML = '<div>B</div><div>I</div><div>N</div><div>G</div><div>O</div>';
+          bingoWrap.appendChild(box);
+          wrap.appendChild(bingoWrap);
+        }
+
+        const overlay = document.createElement('div');
+        overlay.className = "absolute grid grid-cols-5 gap-1.5 p-2 rounded-xl box-border z-10";
+        overlay.style.width = `${configDiseno.customWidth}%`;
+        overlay.style.height = `${configDiseno.customHeight}%`;
+        overlay.style.top = `${configDiseno.customPosY}%`;
+        overlay.style.left = `50%`;
+        overlay.style.transform = `translateX(-50%)`;
+
+        const nums = numsFijos;
+        for(let r = 0; r < 5; r++) {
+          for(let c = 0; c < 5; c++) {
+            const cell = document.createElement('div');
+            cell.className = "rounded flex items-center justify-center font-display font-black shadow-sm";
+            
+            if(configDiseno.customShowBox) {
+              cell.style.backgroundColor = hexToRgba(configDiseno.customColorBox, configDiseno.customOpacidad);
+              cell.style.border = `1.5px solid ${configDiseno.customColorBorder}`;
+            } else {
+              cell.style.backgroundColor = 'transparent';
+              cell.style.border = 'none';
+            }
+
+            cell.style.color = configDiseno.customColorNum;
+            cell.style.fontSize = `${Math.round(configDiseno.customFontSize * 0.8)}px`;
+            cell.innerText = (r === 2 && c === 2) ? "★" : nums[c][r];
+            overlay.appendChild(cell);
+          }
+        }
+        wrap.appendChild(overlay);
+
+        if(configDiseno.customLogoDataUrl && configDiseno.customLogoPos === 'pie') {
+          const pieWrap = document.createElement('div');
+          pieWrap.className = "absolute bottom-1 left-1/2 -translate-x-1/2 z-20";
+          const imgPie = document.createElement('img');
+          imgPie.src = configDiseno.customLogoDataUrl;
+          imgPie.style.height = `${Math.round(configDiseno.customLogoSize * 0.7)}px`;
+          pieWrap.appendChild(imgPie);
+          wrap.appendChild(pieWrap);
+        }
+
+        const spanId = document.createElement('span');
+        spanId.className = "absolute bottom-1 right-2 text-[8px] font-bold text-slate-800 bg-white/90 px-1.5 py-0.5 rounded border border-slate-300 shadow-sm z-20";
+        spanId.innerText = `#${String(idNum).padStart(4, '0')}`;
+        wrap.appendChild(spanId);
+
+        if (configDiseno.incluirQR) {
+          const qrWrap = document.createElement('div');
+          qrWrap.className = "absolute bottom-1 left-2 bg-white rounded p-0.5 shadow z-20 flex items-center justify-center";
+          qrWrap.style.width = "36px";
+          qrWrap.style.height = "36px";
+          const qrImg = document.createElement('img');
+          qrImg.src = urlImagenQR(urlTarjetaQR(idNum, numsFijos), 120);
+          qrImg.width = 34;
+          qrImg.height = 34;
+          qrImg.alt = `QR registro tarjeta #${idNum}`;
+          qrWrap.appendChild(qrImg);
+          wrap.appendChild(qrWrap);
+        }
+
+        return wrap;
+      } else {
+        const clone = document.getElementById('carton-preview').cloneNode(true);
+        clone.id = `carton-print-${idNum}`;
+        clone.className = "carton-print-item aspect-[3/4] rounded-xl p-4 shadow flex flex-col justify-between relative overflow-hidden";
+        const spanId = clone.querySelector('span');
+        if(spanId) spanId.innerText = `ID TABLA: #${String(idNum).padStart(4, '0')}`;
+
+        // Cada tabla necesita su propia combinación aleatoria de números.
+        // Antes se clonaba tal cual la vista previa, así que todas las tablas
+        // del lote salían con exactamente los mismos números.
+        const gridClon = clone.querySelector('#prev-grid');
+        if (gridClon) {
+          gridClon.removeAttribute('id');
+          const nums = numsFijos;
+          const celdas = gridClon.children;
+          let idx = 0;
+          for (let r = 0; r < 5; r++) {
+            for (let c = 0; c < 5; c++) {
+              const cell = celdas[idx];
+              if (cell) cell.innerText = (r === 2 && c === 2) ? "FREE" : nums[c][r];
+              idx++;
+            }
+          }
+        }
+
+        if (configDiseno.incluirQR) {
+          const qrWrap = document.createElement('div');
+          qrWrap.className = "relative z-20 bg-white rounded p-0.5 shadow shrink-0 flex items-center justify-center";
+          qrWrap.style.width = "42px";
+          qrWrap.style.height = "42px";
+          const qrImg = document.createElement('img');
+          qrImg.src = urlImagenQR(urlTarjetaQR(idNum, numsFijos), 120);
+          qrImg.width = 40;
+          qrImg.height = 40;
+          qrImg.alt = `QR registro tarjeta #${idNum}`;
+          qrWrap.appendChild(qrImg);
+
+          const pie = clone.querySelector('.relative.z-10.mt-2');
+          if (pie) {
+            pie.insertBefore(qrWrap, pie.firstChild);
+          } else {
+            clone.appendChild(qrWrap);
+          }
+        }
+
+        return clone;
+      }
+    }
+
+    // MANEJAR CONTROL DE CANTIDAD (PRESETS vs CUSTOM)
+    function manejarCambioCantidad() {
+      const presetSel = document.getElementById('cant-imprimir-preset').value;
+      const customInput = document.getElementById('cant-imprimir-custom');
+
+      if(presetSel === 'custom') {
+        customInput.classList.remove('hidden');
+        customInput.focus();
+      } else {
+        customInput.classList.add('hidden');
+      }
+      renderizarLoteImpresion();
+    }
+
+    function obtenerCantidadTotal() {
+      const presetSel = document.getElementById('cant-imprimir-preset').value;
+      if(presetSel === 'custom') {
+        const valCustom = parseInt(document.getElementById('cant-imprimir-custom').value);
+        return (isNaN(valCustom) || valCustom < 1) ? 1 : valCustom;
+      }
+      return parseInt(presetSel);
+    }
+
+    // Genera un lote NUEVO de tablas (números aleatorios frescos) del tamaño pedido.
+    function generarNuevoLote(cantidadTotal) {
+      ultimoLoteTablas = [];
+      for (let i = 1; i <= cantidadTotal; i++) {
+        ultimoLoteTablas.push({ id: i, columnas: generarNumeros5x5() });
+      }
+    }
+
+    // Dibuja en pantalla el lote que ya está en ultimoLoteTablas, SIN generar
+    // números nuevos. Así, ver la vista previa varias veces, cambiar de pestaña,
+    // imprimir y exportar usan siempre exactamente los mismos números.
+    function pintarLoteEnPantalla() {
+      const container = document.getElementById('area-impresion');
+      container.innerHTML = '';
+
+      const paginasNecesarias = Math.ceil(ultimoLoteTablas.length / 4);
+      document.getElementById('info-hojas-totales').innerText = `${paginasNecesarias} Hoja${paginasNecesarias !== 1 ? 's' : ''} Carta`;
+
+      let idx = 0;
+      for (let p = 0; p < paginasNecesarias; p++) {
+        const pagina = document.createElement('div');
+        pagina.className = "pagina-impresion";
+
+        for (let i = 0; i < 4; i++) {
+          if (idx < ultimoLoteTablas.length) {
+            const cartonEl = crearElementoCarton(ultimoLoteTablas[idx]);
+            pagina.appendChild(cartonEl);
+            idx++;
+          }
+        }
+        container.appendChild(pagina);
+      }
+    }
+
+    // Punto de entrada usado por los controles de la pestaña Imprimir.
+    // Solo genera números nuevos si la cantidad pedida cambió; si no, reutiliza
+    // el lote que ya existe para que no se "muevan" los números sin querer.
+    function renderizarLoteImpresion() {
+      const cantidadTotal = obtenerCantidadTotal();
+      if (ultimoLoteTablas.length !== cantidadTotal) {
+        generarNuevoLote(cantidadTotal);
+      }
+      pintarLoteEnPantalla();
+    }
+
+    // Fuerza un lote 100% nuevo (mismos IDs, números distintos), a pedido explícito del usuario.
+    function regenerarLoteManual() {
+      const cantidadTotal = obtenerCantidadTotal();
+      generarNuevoLote(cantidadTotal);
+      pintarLoteEnPantalla();
+    }
+
+    function generarEImprimir() {
+      renderizarLoteImpresion(); // solo genera si aún no hay lote para esta cantidad
+      setTimeout(() => {
+        window.print();
+      }, 300);
+    }
+
+    // Exporta el lote actual (ID + números exactos de cada tabla) a un archivo
+    // JSON descargable, para poder verificar tablas ganadoras luego en el
+    // módulo de Balotera sin depender de que ambos módulos compartan memoria.
+    // Usa el MISMO lote que se ve en pantalla / se imprimió, nunca genera uno nuevo.
+    function exportarTablasJSON() {
+      renderizarLoteImpresion(); // asegura que exista un lote, sin regenerar si ya coincide
+
+      if (ultimoLoteTablas.length === 0) {
+        alert('No hay tablas generadas para exportar.');
+        return;
+      }
+
+      const blob = new Blob([JSON.stringify(ultimoLoteTablas, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const fecha = new Date().toISOString().slice(0, 10);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `tablas_bingo_${fecha}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    window.onload = function() {
+      actualizarVistaPrevia();
+    };
+  </script>
+</body>
+</html>
