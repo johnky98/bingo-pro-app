@@ -41,7 +41,9 @@
     }
     .anim-nueva { animation: pulso 0.5s cubic-bezier(.2,.9,.3,1.2); }
 
-    #modal-dibujo { backdrop-filter: blur(3px); }
+    #modal-dibujo, #modal-ganador { backdrop-filter: blur(3px); }
+
+    .hidden { display: none !important; }
   </style>
 </head>
 <body class="text-white min-h-screen font-sans flex flex-col p-4">
@@ -58,6 +60,26 @@
   <div class="max-w-6xl w-full mx-auto flex items-center justify-between text-sm text-purple-300 mt-4 mb-2 px-1">
     <span id="contador-restantes">75 balotas por sacar</span>
     <span id="contador-salidas">0 de 75 salieron</span>
+  </div>
+
+  <!-- RONDA ACTUAL -->
+  <div class="max-w-6xl w-full mx-auto flex flex-wrap items-center justify-between gap-3 mb-4 px-1">
+    <span id="badge-ronda" class="text-sm font-bold text-amber-400">Ronda 1 de 10</span>
+    <div class="flex flex-wrap items-center gap-2">
+      <label class="flex items-center gap-1.5 text-xs text-purple-300" title="Sube este número en cualquier momento si quieres jugar más rondas">
+        Total rondas:
+        <input id="input-total-rondas" type="number" min="1" value="10"
+          class="w-16 bg-brandCard border border-purple-800/50 rounded-lg px-2 py-1 text-xs font-bold text-white outline-none">
+        <button onclick="actualizarTotalRondas()"
+          class="px-2 py-1 bg-purple-700 hover:bg-purple-600 text-white text-xs font-bold rounded-lg transition">
+          Actualizar
+        </button>
+      </label>
+      <button id="btn-ronda" onclick="iniciarSiguienteRonda()"
+        class="px-4 py-2 bg-brandOrange hover:bg-brandOrangeHover text-white font-bold rounded-xl text-sm shadow-lg transition">
+        ⏭️ Siguiente Ronda (2 de 10)
+      </button>
+    </div>
   </div>
 
   <!-- SELECTOR DE MODALIDAD DE JUEGO -->
@@ -169,6 +191,21 @@
     <div id="resultado-verificacion"></div>
   </div>
 
+  <!-- HISTORIAL DE GANADORES -->
+  <div class="max-w-6xl w-full mx-auto mt-8 bg-brandCard/80 border border-purple-900/40 p-6 rounded-3xl shadow-2xl backdrop-blur-sm">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-base font-bold text-white flex items-center gap-2">
+        <span>📜</span> Historial de Ganadores
+      </h2>
+      <button onclick="borrarHistorialGanadores()" class="text-xs text-purple-300 hover:text-white underline tracking-wide transition">
+        🗑️ Borrar historial
+      </button>
+    </div>
+    <div id="lista-historial-ganadores" class="text-sm text-purple-200 space-y-1">
+      Aún no hay ganadores registrados.
+    </div>
+  </div>
+
   <div class="text-center py-4 text-[10px] text-purple-400">Bingo Pro - Panel de Balotas</div>
 
   <!-- MODAL: MODO DIBUJO PERSONALIZADO -->
@@ -184,10 +221,25 @@
     </div>
   </div>
 
+  <!-- MODAL: ¡BINGO! (ganador(es) detectados automáticamente) -->
+  <div id="modal-ganador" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-50 px-4">
+    <div class="bg-brandCard border border-purple-800/50 text-white rounded-2xl p-6 max-w-xs w-full shadow-2xl">
+      <div id="contenido-modal-ganador" class="max-h-[60vh] overflow-y-auto"></div>
+      <div class="flex justify-end mt-2">
+        <button onclick="cerrarModalGanador()" class="px-5 py-2 rounded-full text-sm font-bold bg-brandOrange hover:bg-brandOrangeHover text-white transition">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const CLAVE_BALOTAS = 'bingo_balotera_balotas_v1';
     const CLAVE_TABLAS = 'bingo_balotera_tablas_v1';
     const CLAVE_PATRON = 'bingo_balotera_patron_v1';
+    const CLAVE_RONDA = 'bingo_balotera_ronda_v1';
+    const CLAVE_TOTAL_RONDAS = 'bingo_balotera_total_rondas_v1';
+    const CLAVE_HISTORIAL = 'bingo_balotera_historial_ganadores_v1';
+    const CLAVE_AVISADOS = 'bingo_balotera_avisados_v1';
+    const TOTAL_RONDAS_POR_DEFECTO = 10;
 
     function guardarBolasCantadas() {
       try {
@@ -231,8 +283,33 @@
       return null;
     }
 
+    function leerJSON(clave, porDefecto) {
+      try {
+        const guardado = localStorage.getItem(clave);
+        if (guardado) return JSON.parse(guardado);
+      } catch (e) { /* sin localStorage disponible */ }
+      return porDefecto;
+    }
+
+    function escribirJSON(clave, valor) {
+      try {
+        localStorage.setItem(clave, JSON.stringify(valor));
+      } catch (e) { /* sin localStorage disponible */ }
+    }
+
+    function enteroPositivoGuardado(clave, porDefecto) {
+      const n = leerJSON(clave, porDefecto);
+      return Number.isInteger(n) && n > 0 ? n : porDefecto;
+    }
+
     let bolasCantadas = cargarBolasCantadas();
     let tablasImportadas = cargarTablasImportadas();
+    let rondaActual = enteroPositivoGuardado(CLAVE_RONDA, 1);
+    let totalRondas = Math.max(enteroPositivoGuardado(CLAVE_TOTAL_RONDAS, TOTAL_RONDAS_POR_DEFECTO), rondaActual);
+    let historialGanadores = leerJSON(CLAVE_HISTORIAL, []);
+    // Tablas ya avisadas como ganadoras ("ronda:idTabla"). Es independiente del historial
+    // visible para que "Borrar historial" a mitad de ronda no repita avisos.
+    const ganadoresAvisados = new Set(leerJSON(CLAVE_AVISADOS, []));
 
     const NOMBRES_PATRON = {
       lleno: 'Cartón Lleno',
@@ -392,6 +469,7 @@
       bolasCantadas.push(rand);
       actualizarTableroUI(true);
       guardarBolasCantadas();
+      verificarGanadoresAutomatico();
     }
 
     function actualizarTableroUI(animar) {
@@ -469,10 +547,16 @@
     }
 
     function reiniciarJuego() {
-      if (confirm("¿Deseas reiniciar el tablero de balotas?")) {
+      if (confirm("¿Deseas reiniciar el tablero de balotas? Esto también borra el historial de ganadores.")) {
         bolasCantadas = [];
         actualizarTableroUI();
         guardarBolasCantadas();
+
+        historialGanadores = [];
+        escribirJSON(CLAVE_HISTORIAL, historialGanadores);
+        ganadoresAvisados.clear();
+        escribirJSON(CLAVE_AVISADOS, []);
+        renderHistorialGanadores();
       }
     }
 
@@ -495,6 +579,7 @@
 
           guardarTablasImportadas();
           actualizarInfoTablasImportadas();
+          verificarGanadoresAutomatico();
         } catch (err) {
           alert('El archivo no tiene el formato esperado. Debe ser el JSON exportado desde el botón "📥 Exportar Tablas" del módulo de Diseño.');
         }
@@ -510,22 +595,10 @@
         : 'Aún no has importado ningún archivo de tablas.';
     }
 
-    function verificarTabla() {
-      const idInput = document.getElementById('input-id-tabla');
-      const id = idInput.value.trim();
-      const resultado = document.getElementById('resultado-verificacion');
-
-      if (!id) {
-        resultado.innerHTML = '<p class="text-xs text-purple-400">Escribe el número de tabla a verificar.</p>';
-        return;
-      }
-
-      const columnas = tablasImportadas[id] || tablasImportadas[String(parseInt(id, 10))];
-      if (!columnas) {
-        resultado.innerHTML = `<div class="bg-rose-950/40 border border-rose-700/50 rounded-xl p-3 text-center"><p class="text-sm text-rose-300 font-bold">⚠️ No se encontró la tabla #${id}.</p><p class="text-xs text-rose-400/80 mt-1">Verifica el número o que importaste el archivo correcto.</p></div>`;
-        return;
-      }
-
+    // Lógica pura (sin DOM): dada una tabla, la modalidad activa y las balotas cantadas,
+    // calcula la matriz 5x5, el patrón a pintar y si la tabla ya es ganadora.
+    // La usan la verificación manual y la detección automática tras cada balota.
+    function tablaCumplePatron(columnas, patronActivo, bolasCantadas) {
       const matriz = [];
       for (let f = 0; f < 5; f++) {
         const fila = [];
@@ -605,6 +678,28 @@
         esGanadora = requeridas > 0 && cumplidas === requeridas;
       }
 
+      return { matriz, patron, esGanadora, requeridas, cumplidas, numerosFaltantes };
+    }
+
+    function verificarTabla() {
+      const idInput = document.getElementById('input-id-tabla');
+      const id = idInput.value.trim();
+      const resultado = document.getElementById('resultado-verificacion');
+
+      if (!id) {
+        resultado.innerHTML = '<p class="text-xs text-purple-400">Escribe el número de tabla a verificar.</p>';
+        return;
+      }
+
+      const columnas = tablasImportadas[id] || tablasImportadas[String(parseInt(id, 10))];
+      if (!columnas) {
+        resultado.innerHTML = `<div class="bg-rose-950/40 border border-rose-700/50 rounded-xl p-3 text-center"><p class="text-sm text-rose-300 font-bold">⚠️ No se encontró la tabla #${id}.</p><p class="text-xs text-rose-400/80 mt-1">Verifica el número o que importaste el archivo correcto.</p></div>`;
+        return;
+      }
+
+      const { matriz, patron, esGanadora, requeridas, cumplidas, numerosFaltantes } =
+        tablaCumplePatron(columnas, patronActivo, bolasCantadas);
+
       let gridHTML = '<div class="grid grid-cols-5 gap-1.5 max-w-xs mx-auto mb-4">';
       matriz.flat().forEach((cel, idx) => {
         const f = Math.floor(idx / 5);
@@ -643,10 +738,153 @@
       resultado.innerHTML = `<p class="text-xs text-purple-400 mb-2 text-center">Tabla #${String(id).padStart(4, '0')}</p>` + gridHTML + veredictoHTML;
     }
 
+    // ============================================================
+    // RONDAS: la Ronda 1 ya está en curso al entrar. "Siguiente Ronda" reinicia el
+    // bombo; las tablas importadas y el historial de ganadores no se tocan.
+    // ============================================================
+    function actualizarUIRonda() {
+      const badge = document.getElementById('badge-ronda');
+      const btn = document.getElementById('btn-ronda');
+      const inputTotal = document.getElementById('input-total-rondas');
+      if (inputTotal && document.activeElement !== inputTotal) inputTotal.value = totalRondas;
+
+      if (rondaActual < totalRondas) {
+        badge.textContent = `Ronda ${rondaActual} de ${totalRondas}`;
+        btn.textContent = `⏭️ Siguiente Ronda (${rondaActual + 1} de ${totalRondas})`;
+        btn.disabled = false;
+        btn.classList.remove('opacity-60', 'cursor-not-allowed');
+      } else {
+        badge.textContent = `Ronda ${totalRondas} de ${totalRondas} — última ronda`;
+        btn.textContent = '🏁 Evento finalizado';
+        btn.disabled = true;
+        btn.classList.add('opacity-60', 'cursor-not-allowed');
+      }
+    }
+
+    // Se puede subir o bajar el total en vivo, pero nunca por debajo de la ronda en curso.
+    function actualizarTotalRondas() {
+      const input = document.getElementById('input-total-rondas');
+      const nuevo = parseInt(input.value, 10);
+      if (!Number.isInteger(nuevo) || nuevo < 1) {
+        alert('Ingresa un número de rondas válido (1 o más).');
+        input.value = totalRondas;
+        return;
+      }
+      if (nuevo < rondaActual) {
+        alert(`Ya vas en la ronda ${rondaActual}, no puedes bajar el total por debajo de eso.`);
+        input.value = totalRondas;
+        return;
+      }
+      totalRondas = nuevo;
+      escribirJSON(CLAVE_TOTAL_RONDAS, totalRondas);
+      actualizarUIRonda();
+    }
+
+    function iniciarSiguienteRonda() {
+      if (rondaActual >= totalRondas) return;
+      if (!confirm(`¿Pasar a la Ronda ${rondaActual + 1} de ${totalRondas}? Se reinicia el bombo (75 balotas disponibles de nuevo). Elige la modalidad de la nueva ronda con el selector de arriba antes de sacar balotas.`)) return;
+
+      rondaActual++;
+      bolasCantadas = [];
+      escribirJSON(CLAVE_RONDA, rondaActual);
+      guardarBolasCantadas();
+      actualizarTableroUI();
+      actualizarUIRonda();
+    }
+
+    // ============================================================
+    // DETECCIÓN AUTOMÁTICA DE GANADORES: tras cada balota (y al importar tablas o
+    // cargar la página) revisa todas las tablas cargadas contra la modalidad activa.
+    // Una tabla avisa una sola vez por ronda, pero puede volver a ganar en otra ronda.
+    // ============================================================
+    function verificarGanadoresAutomatico() {
+      const ids = Object.keys(tablasImportadas);
+      if (ids.length === 0 || bolasCantadas.length === 0) return;
+
+      const nuevosGanadores = [];
+      for (const id of ids) {
+        const clave = `${rondaActual}:${id}`;
+        if (ganadoresAvisados.has(clave)) continue;
+
+        const { esGanadora } = tablaCumplePatron(tablasImportadas[id], patronActivo, bolasCantadas);
+        if (!esGanadora) continue;
+
+        ganadoresAvisados.add(clave);
+        const registro = { ronda: rondaActual, idTabla: id };
+        historialGanadores.push(registro);
+        nuevosGanadores.push(registro);
+      }
+
+      if (nuevosGanadores.length > 0) {
+        escribirJSON(CLAVE_AVISADOS, Array.from(ganadoresAvisados));
+        escribirJSON(CLAVE_HISTORIAL, historialGanadores);
+        renderHistorialGanadores();
+        mostrarModalGanadores(nuevosGanadores);
+      }
+    }
+
+    function crearElemento(etiqueta, clases, texto) {
+      const el = document.createElement(etiqueta);
+      el.className = clases;
+      el.textContent = texto;
+      return el;
+    }
+
+    function etiquetaTabla(idTabla) {
+      return `Tabla #${String(idTabla).padStart(4, '0')}`;
+    }
+
+    function mostrarModalGanadores(nuevosGanadores) {
+      const cont = document.getElementById('contenido-modal-ganador');
+      cont.replaceChildren();
+      nuevosGanadores.forEach(g => {
+        const tarjeta = crearElemento('div', 'bg-green-900/30 border-2 border-green-500 rounded-xl p-4 text-center mb-3', '');
+        tarjeta.appendChild(crearElemento('p', 'text-xl font-display font-black text-green-400 mb-1', '✅ ¡BINGO!'));
+        tarjeta.appendChild(crearElemento('p', 'text-sm text-white font-bold', etiquetaTabla(g.idTabla)));
+        tarjeta.appendChild(crearElemento('p', 'text-[10px] text-green-400/70 mt-1', `Ronda ${g.ronda} — ${patronActivo.nombre}`));
+        cont.appendChild(tarjeta);
+      });
+      const modal = document.getElementById('modal-ganador');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function cerrarModalGanador() {
+      const modal = document.getElementById('modal-ganador');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function renderHistorialGanadores() {
+      const cont = document.getElementById('lista-historial-ganadores');
+      cont.replaceChildren();
+      if (historialGanadores.length === 0) {
+        cont.textContent = 'Aún no hay ganadores registrados.';
+        return;
+      }
+      historialGanadores.slice().reverse().forEach(g => {
+        const fila = crearElemento('div', 'flex justify-between items-center bg-gridBg/40 rounded-lg px-3 py-2', '');
+        fila.appendChild(crearElemento('span', 'text-xs text-purple-400', `Ronda ${g.ronda}`));
+        fila.appendChild(crearElemento('span', 'font-bold text-amber-300', etiquetaTabla(g.idTabla)));
+        cont.appendChild(fila);
+      });
+    }
+
+    function borrarHistorialGanadores() {
+      if (confirm('¿Borrar el historial de ganadores? Las balotas ya cantadas y la ronda actual no se tocan.')) {
+        historialGanadores = [];
+        escribirJSON(CLAVE_HISTORIAL, historialGanadores);
+        renderHistorialGanadores();
+      }
+    }
+
     window.onload = function() {
       inicializarTableroBalotas();
       actualizarInfoTablasImportadas();
       aplicarPatronActivo();
+      actualizarUIRonda();
+      renderHistorialGanadores();
+      verificarGanadoresAutomatico();
     };
   </script>
 </body>
