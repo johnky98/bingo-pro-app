@@ -1,0 +1,307 @@
+/* Bingo Pro: vidrio líquido. Única fuente del look de los cuatro módulos. */
+
+:root {
+  --fondo: #130A2A;
+  --fondo-2: #1E0A47;
+  --morado: #2E1065;
+  --naranja: #F5711B;
+  --dorado: #C9982B;
+  --letra-b: #FF6B00;
+  --letra-i: #7C3AED;
+  --letra-n: #D9A32B;
+  --letra-g: #DC2626;
+  --letra-o: #0D9488;
+  --glass-blur: 22px;
+  --glass-radius: 24px;
+  --glass-borde: rgba(255, 255, 255, 0.18);
+  --glass-sombra: 0 10px 40px rgba(8, 3, 24, 0.45);
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ---------- Fondo ambiental ---------- */
+body.liquid-bg {
+  background-color: var(--fondo);
+}
+.liquid-bg::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(56rem 38rem at 86% -6%, rgba(139, 70, 255, 0.58), transparent 64%),
+    radial-gradient(44rem 34rem at -8% 42%, rgba(245, 113, 27, 0.30), transparent 64%),
+    radial-gradient(40rem 30rem at 108% 74%, rgba(245, 113, 27, 0.16), transparent 64%),
+    radial-gradient(52rem 40rem at 46% 114%, rgba(109, 40, 217, 0.55), transparent 66%),
+    linear-gradient(165deg, var(--fondo-2) 0%, var(--fondo) 55%, #0E0620 100%);
+}
+
+/* ---------- Tarjetas de vidrio ---------- */
+:where(.glass, .glass-strong) { position: relative; }
+
+.glass,
+.glass-strong {
+  isolation: isolate;
+  border: 1px solid var(--glass-borde);
+  border-radius: var(--glass-radius);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+}
+
+.glass {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.06) 42%, rgba(255, 255, 255, 0.04) 100%);
+  box-shadow:
+    var(--glass-sombra),
+    inset 0 1px 0 rgba(255, 255, 255, 0.38),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.07),
+    inset 0 0 30px rgba(255, 255, 255, 0.035);
+}
+.glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 70% at 0% 0%, rgba(255, 255, 255, 0.20), transparent 46%),
+    radial-gradient(90% 60% at 100% 100%, rgba(245, 113, 27, 0.10), transparent 55%);
+}
+
+.glass-strong {
+  --glass-blur: 32px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.08)), rgba(30, 10, 71, 0.58);
+  box-shadow:
+    0 24px 70px rgba(5, 2, 18, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* Barra fija: más opaca que .glass para que el contenido claro que pasa por debajo no vuelva ilegible su texto. */
+.glass-bar {
+  isolation: isolate;
+  background: rgba(22, 8, 52, 0.88);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  backdrop-filter: blur(24px) saturate(160%);
+  box-shadow:
+    0 8px 30px rgba(5, 2, 18, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* Para tarjetas dentro de otra tarjeta: sin blur propio (el blur anidado no suma y cuesta). */
+.glass-soft {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 16px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.glass-hover {
+  overflow: hidden;
+  transition: transform 0.35s var(--ease), box-shadow 0.35s var(--ease), border-color 0.35s var(--ease);
+}
+.glass-hover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.14) 50%, transparent 70%);
+  transform: translateX(-120%);
+  transition: transform 0.8s var(--ease);
+}
+.glass-hover:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 255, 255, 0.36);
+  box-shadow:
+    0 18px 50px rgba(8, 3, 24, 0.55),
+    0 0 40px rgba(245, 113, 27, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+}
+.glass-hover:hover::after { transform: translateX(120%); }
+
+/* ---------- Botones ---------- */
+.btn-liquid,
+.btn-verde,
+.btn-glass {
+  color: #fff;
+  font-weight: 700;
+  transition: filter 0.2s var(--ease), transform 0.15s var(--ease), box-shadow 0.2s var(--ease), background 0.2s var(--ease);
+}
+.btn-liquid:active,
+.btn-verde:active,
+.btn-glass:active { transform: scale(0.97); }
+
+.btn-liquid {
+  background: linear-gradient(180deg, #FF8A3D 0%, #EE6616 50%, #D4510A 100%);
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  box-shadow:
+    0 8px 24px rgba(245, 113, 27, 0.38),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -3px 8px rgba(150, 40, 0, 0.35);
+  text-shadow: 0 1px 2px rgba(120, 40, 0, 0.5);
+}
+.btn-liquid:hover:not(:disabled) { filter: brightness(1.08); }
+
+.btn-verde {
+  background: linear-gradient(180deg, #4ADE80 0%, #16A34A 55%, #15803D 100%);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow:
+    0 8px 24px rgba(22, 163, 74, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -3px 8px rgba(5, 80, 35, 0.35);
+  text-shadow: 0 1px 2px rgba(5, 60, 25, 0.5);
+}
+.btn-verde:hover:not(:disabled) { filter: brightness(1.08); }
+
+.btn-glass {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.06)), rgba(24, 8, 60, 0.38);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 4px 14px rgba(8, 3, 24, 0.3);
+}
+.btn-glass:hover:not(:disabled) {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.26), rgba(255, 255, 255, 0.10)), rgba(24, 8, 60, 0.38);
+}
+
+/* ---------- Campos ---------- */
+.glass-input {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 14px;
+  box-shadow: inset 0 2px 6px rgba(8, 3, 24, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  outline: none;
+  color-scheme: dark;
+  transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+.glass-input:focus {
+  border-color: var(--naranja);
+  box-shadow: 0 0 0 3px rgba(245, 113, 27, 0.35), inset 0 2px 6px rgba(8, 3, 24, 0.35);
+}
+.glass-input::placeholder { color: rgba(255, 255, 255, 0.45); }
+.liquid-bg input[type="range"] { accent-color: var(--naranja); }
+.glass-input option { background: #1E0A47; color: #fff; }
+
+/* ---------- Legibilidad sobre los resplandores ----------
+   Las etiquetas moradas y grises pequeñas se aclaran un paso: sobre el brillo del fondo
+   las tonalidades originales bajaban de 4,5:1. La mayor especificidad evita depender
+   del orden en que Tailwind inyecta su CSS. */
+.liquid-bg .text-purple-300 { color: #e9d5ff; }
+.liquid-bg .text-purple-400 { color: #dcc0ff; }
+.liquid-bg .text-purple-500 { color: #cda5ff; }
+.liquid-bg .text-slate-400 { color: #bcc7da; }
+.liquid-bg .text-brandOrange { color: #FF8A3D; }
+
+/* ---------- Insignias en píldora ---------- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.65rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* ---------- Elementos de juego ---------- */
+.cell-glass {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04));
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+.cell-on {
+  text-shadow: 0 1px 2px rgba(60, 20, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow:
+    0 4px 14px rgba(8, 3, 24, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Balota actual: esfera de vidrio con halo del color de la letra. */
+.orb {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  padding-top: 8%;
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  box-shadow:
+    inset 0 8px 18px rgba(255, 255, 255, 0.26),
+    inset 0 -18px 30px rgba(0, 0, 0, 0.35),
+    0 20px 54px rgba(5, 2, 18, 0.55),
+    0 0 70px var(--halo, rgba(255, 255, 255, 0.07));
+}
+.orb::before {
+  content: "";
+  position: absolute;
+  top: 4%;
+  left: 14%;
+  width: 58%;
+  height: 24%;
+  border-radius: 50%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0));
+  pointer-events: none;
+}
+.orb > * { position: relative; z-index: 1; text-shadow: 0 2px 6px rgba(40, 15, 0, 0.55); }
+.orb-vacia {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.05));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+}
+.orb.bg-letraB { --halo: rgba(255, 107, 0, 0.5); }
+.orb.bg-letraI { --halo: rgba(124, 58, 237, 0.55); }
+.orb.bg-letraN { --halo: rgba(217, 163, 43, 0.5); }
+.orb.bg-letraG { --halo: rgba(220, 38, 38, 0.5); }
+.orb.bg-letraO { --halo: rgba(13, 148, 136, 0.5); }
+
+/* ---------- Respaldos y accesibilidad ---------- */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass,
+  .glass-strong,
+  .orb-vacia { background: rgba(32, 17, 64, 0.92); }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass,
+  .glass-strong,
+  .orb-vacia {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: rgba(32, 17, 64, 0.94);
+  }
+  .glass::before { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass-hover,
+  .glass-hover::after,
+  .btn-liquid,
+  .btn-verde,
+  .btn-glass,
+  .glass-input { transition: none !important; }
+  .glass-hover:hover { transform: none; }
+  .glass-hover:hover::after { transform: translateX(-120%); }
+  .btn-liquid:active,
+  .btn-verde:active,
+  .btn-glass:active { transform: none; }
+}
+
+@media (max-width: 640px) {
+  :root { --glass-blur: 14px; }
+}
+
+/* La interfaz de vidrio no se imprime; el cartón del módulo de Diseño conserva sus propios estilos. */
+@media print {
+  .liquid-bg::before { display: none !important; }
+  body.liquid-bg { background: #0f172a !important; }
+  .glass,
+  .glass-strong {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+  }
+}

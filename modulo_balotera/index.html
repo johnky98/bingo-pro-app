@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bingo Pro - Panel de Control & Balotera</title>
+  <link rel="stylesheet" href="../assets/liquid-glass.css">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -29,11 +30,6 @@
     }
   </script>
   <style>
-    body {
-      background-color: #130A2A;
-      background-image: radial-gradient(circle at top right, #2b1254 0%, #130A2A 60%);
-    }
-
     @keyframes pulso {
       0% { transform: scale(0.85); opacity: 0.4; }
       60% { transform: scale(1.06); opacity: 1; }
@@ -46,11 +42,11 @@
     .hidden { display: none !important; }
   </style>
 </head>
-<body class="text-white min-h-screen font-sans flex flex-col p-4">
+<body class="liquid-bg text-white min-h-screen font-sans flex flex-col p-4">
 
   <!-- BOTÓN VOLVER AL MENÚ -->
   <div class="max-w-6xl w-full mx-auto flex justify-between items-center py-2">
-    <a href="../index.html" class="bg-purple-950/80 hover:bg-purple-900 border border-purple-800/50 text-purple-300 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold transition">
+    <a href="../index.html" class="btn-glass px-3 py-1.5 rounded-full text-xs">
       &larr; Volver al Menú Principal
     </a>
     <span class="text-xs font-bold tracking-widest text-purple-400">FASE 3: BALOTERA & CONTROL</span>
@@ -64,32 +60,32 @@
 
   <!-- RONDA ACTUAL -->
   <div class="max-w-6xl w-full mx-auto flex flex-wrap items-center justify-between gap-3 mb-4 px-1">
-    <span id="badge-ronda" class="text-sm font-bold text-amber-400">Ronda 1 de 10</span>
+    <span id="badge-ronda" class="chip text-sm font-bold text-amber-300">Ronda 1 de 10</span>
     <div class="flex flex-wrap items-center gap-2">
       <label class="flex items-center gap-1.5 text-xs text-purple-300" title="Sube este número en cualquier momento si quieres jugar más rondas">
         Total rondas:
         <input id="input-total-rondas" type="number" min="1" value="10"
-          class="w-16 bg-brandCard border border-purple-800/50 rounded-lg px-2 py-1 text-xs font-bold text-white outline-none">
+          class="glass-input w-16 px-2 py-1 text-xs font-bold">
         <button onclick="actualizarTotalRondas()"
-          class="px-2 py-1 bg-purple-700 hover:bg-purple-600 text-white text-xs font-bold rounded-lg transition">
+          class="btn-glass px-2 py-1 text-xs rounded-lg">
           Actualizar
         </button>
       </label>
       <button id="btn-ronda" onclick="iniciarSiguienteRonda()"
-        class="px-4 py-2 bg-brandOrange hover:bg-brandOrangeHover text-white font-bold rounded-xl text-sm shadow-lg transition">
+        class="btn-liquid px-4 py-2 rounded-full text-sm">
         ⏭️ Siguiente Ronda (2 de 10)
       </button>
     </div>
   </div>
 
   <!-- SELECTOR DE MODALIDAD DE JUEGO -->
-  <div class="max-w-6xl w-full mx-auto mb-6 bg-brandCard/80 border border-purple-900/40 rounded-3xl p-4 md:p-6 shadow-2xl backdrop-blur-sm">
+  <div class="glass max-w-6xl w-full mx-auto mb-6 p-4 md:p-6">
     <div class="flex flex-col md:flex-row md:items-center gap-5 md:gap-8">
       <div class="flex-1 flex flex-col sm:flex-row sm:items-center gap-3">
         <div class="flex flex-col gap-1">
           <label for="select-modalidad" class="uppercase tracking-[0.2em] text-[10px] text-purple-400">Modalidad de juego</label>
           <select id="select-modalidad" onchange="cambiarModalidadPreestablecida(this.value)"
-            class="bg-gridBg text-white border border-purple-800/40 rounded-xl px-4 py-3 text-sm md:text-base font-semibold outline-none focus:ring-2 focus:ring-brandOrange">
+            class="glass-input px-4 py-3 text-sm md:text-base font-semibold">
             <option value="lleno">Cartón Lleno</option>
             <option value="horizontal">Línea Horizontal</option>
             <option value="vertical">Línea Vertical</option>
@@ -101,12 +97,12 @@
         </div>
 
         <button onclick="abrirModalDibujo()"
-          class="mt-1 sm:mt-6 self-start px-4 py-3 rounded-xl text-sm font-bold bg-purple-700 hover:bg-purple-600 text-white transition shadow">
+          class="btn-glass mt-1 sm:mt-6 self-start px-4 py-3 rounded-xl text-sm">
           ✏️ Modo dibujo personalizado
         </button>
       </div>
 
-      <div class="flex items-center gap-4 bg-gridBg/60 border border-purple-800/30 rounded-2xl px-4 py-3">
+      <div class="glass-soft flex items-center gap-4 px-4 py-3">
         <div id="miniatura-patron" class="grid grid-cols-5 gap-[3px] w-20 h-20 md:w-24 md:h-24 flex-shrink-0"></div>
         <div>
           <p class="uppercase tracking-[0.2em] text-[10px] text-purple-400 mb-1">Se juega</p>
@@ -125,7 +121,7 @@
       <!-- BALOTA ACTUAL CANTADA (CÍRCULO) -->
       <div class="space-y-2">
         <span class="text-xs uppercase tracking-widest text-purple-300 font-bold">Balota Actual</span>
-        <div id="balota-actual-circulo" class="w-48 h-48 md:w-56 md:h-56 mx-auto rounded-full flex flex-col items-center justify-center bg-brandCard border-4 border-purple-800/40 shadow-2xl transition-colors">
+        <div id="balota-actual-circulo" class="orb orb-vacia w-48 h-48 md:w-56 md:h-56 mx-auto rounded-full flex flex-col items-center justify-center transition-colors">
           <span id="balota-letra" class="font-display font-black text-3xl md:text-4xl leading-none text-white">—</span>
           <span id="balota-numero" class="font-display font-black text-6xl md:text-7xl leading-none text-white">--</span>
         </div>
@@ -133,7 +129,7 @@
 
       <!-- BOTÓN PRINCIPAL SACAR BALOTA -->
       <div class="w-full max-w-sm space-y-3">
-        <button id="btn-sacar-balota" onclick="sacarBalotaAleatoria()" class="w-full py-4 bg-brandOrange hover:bg-brandOrangeHover text-white font-display font-black text-2xl tracking-wide rounded-2xl shadow-2xl transform active:scale-95 transition-all">
+        <button id="btn-sacar-balota" onclick="sacarBalotaAleatoria()" class="btn-liquid w-full py-4 font-display font-black text-2xl tracking-wide rounded-full">
           ¡SACAR BALOTA!
         </button>
         
@@ -145,7 +141,7 @@
       </div>
 
       <!-- HISTORIAL RECIENTE -->
-      <div class="w-full max-w-sm pt-4 text-left border-t border-purple-900/50">
+      <div class="w-full max-w-sm pt-4 text-left border-t border-white/10">
         <h3 class="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">HISTORIAL RECIENTE</h3>
         <div id="historial-reciente" class="text-xs text-purple-300 font-medium">
           Aún no hay balotas anteriores
@@ -155,9 +151,9 @@
     </div>
 
     <!-- COLUMNA DERECHA: TABLERO DE BALOTAS 1-75 (SOLO LECTURA) -->
-    <div class="lg:col-span-7 bg-brandCard/80 border border-purple-900/40 p-6 rounded-3xl shadow-2xl backdrop-blur-sm">
+    <div class="glass lg:col-span-7 p-6">
       <div id="tablero-balotas-grid" class="grid grid-cols-5 gap-2"></div>
-      <p class="text-[10px] text-purple-400/70 text-center mt-4">
+      <p class="text-[10px] text-purple-300/90 text-center mt-4">
         Este tablero es solo de verificación visual — únicamente el botón "¡SACAR BALOTA!" marca números como cantados.
       </p>
     </div>
@@ -165,7 +161,7 @@
   </div>
 
   <!-- VERIFICADOR DE TABLAS GANADORAS -->
-  <div class="max-w-6xl w-full mx-auto mt-8 bg-brandCard/80 border border-purple-900/40 p-6 rounded-3xl shadow-2xl backdrop-blur-sm">
+  <div class="glass max-w-6xl w-full mx-auto mt-8 p-6">
     <h2 class="text-base font-bold text-white flex items-center gap-2 mb-1">
       <span>🏆</span> Verificar Tabla Ganadora
     </h2>
@@ -174,7 +170,7 @@
     </p>
 
     <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-4">
-      <label class="px-4 py-2.5 bg-purple-700 hover:bg-purple-600 text-white font-bold rounded-xl text-sm shadow-lg transition cursor-pointer">
+      <label class="btn-glass px-4 py-2.5 rounded-xl text-sm cursor-pointer">
         📂 Importar Tablas (JSON)
         <input type="file" id="input-importar-tablas" accept="application/json" onchange="importarTablasJSON(event)" class="hidden">
       </label>
@@ -182,8 +178,8 @@
     </div>
 
     <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-5">
-      <input type="number" id="input-id-tabla" min="1" placeholder="N.° de tabla (ej: 42)" class="flex-1 sm:flex-none sm:w-56 bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-bold text-amber-400 outline-none">
-      <button onclick="verificarTabla()" class="px-5 py-2.5 bg-brandOrange hover:bg-brandOrangeHover text-white font-bold rounded-xl text-sm shadow-lg transition">
+      <input type="number" id="input-id-tabla" min="1" placeholder="N.° de tabla (ej: 42)" class="glass-input flex-1 sm:flex-none sm:w-56 px-4 py-2.5 text-sm font-bold text-amber-300">
+      <button onclick="verificarTabla()" class="btn-liquid px-5 py-2.5 rounded-full text-sm">
         🔍 Verificar
       </button>
     </div>
@@ -192,7 +188,7 @@
   </div>
 
   <!-- HISTORIAL DE GANADORES -->
-  <div class="max-w-6xl w-full mx-auto mt-8 bg-brandCard/80 border border-purple-900/40 p-6 rounded-3xl shadow-2xl backdrop-blur-sm">
+  <div class="glass max-w-6xl w-full mx-auto mt-8 p-6">
     <div class="flex items-center justify-between mb-3">
       <h2 class="text-base font-bold text-white flex items-center gap-2">
         <span>📜</span> Historial de Ganadores
@@ -210,23 +206,23 @@
 
   <!-- MODAL: MODO DIBUJO PERSONALIZADO -->
   <div id="modal-dibujo" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-50 px-4">
-    <div class="bg-brandCard border border-purple-800/50 text-white rounded-2xl p-6 max-w-xs w-full shadow-2xl">
+    <div class="glass-strong text-white p-6 max-w-xs w-full">
       <h2 class="font-display font-black text-xl mb-1">Dibuja la figura</h2>
       <p class="text-xs mb-4 text-purple-300">Haz clic en las casillas para encenderlas o apagarlas. El centro es la casilla libre por defecto.</p>
       <div id="matriz-dibujo" class="grid grid-cols-5 gap-2 mb-5 max-w-[260px] mx-auto"></div>
       <div class="flex justify-end gap-3">
         <button onclick="cerrarModalDibujo()" class="px-4 py-2 rounded-full text-sm font-semibold text-purple-300 hover:text-white transition">Cancelar</button>
-        <button onclick="guardarPatronPersonalizado()" class="px-5 py-2 rounded-full text-sm font-bold bg-brandOrange hover:bg-brandOrangeHover text-white transition">Guardar patrón</button>
+        <button onclick="guardarPatronPersonalizado()" class="btn-liquid px-5 py-2 rounded-full text-sm">Guardar patrón</button>
       </div>
     </div>
   </div>
 
   <!-- MODAL: ¡BINGO! (ganador(es) detectados automáticamente) -->
   <div id="modal-ganador" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-50 px-4">
-    <div class="bg-brandCard border border-purple-800/50 text-white rounded-2xl p-6 max-w-xs w-full shadow-2xl">
+    <div class="glass-strong text-white p-6 max-w-xs w-full">
       <div id="contenido-modal-ganador" class="max-h-[60vh] overflow-y-auto"></div>
       <div class="flex justify-end mt-2">
-        <button onclick="cerrarModalGanador()" class="px-5 py-2 rounded-full text-sm font-bold bg-brandOrange hover:bg-brandOrangeHover text-white transition">Cerrar</button>
+        <button onclick="cerrarModalGanador()" class="btn-liquid px-5 py-2 rounded-full text-sm">Cerrar</button>
       </div>
     </div>
   </div>
@@ -355,7 +351,7 @@
       for (let f = 0; f < 5; f++) {
         for (let c = 0; c < 5; c++) {
           const cel = document.createElement('div');
-          cel.className = grid[f][c] ? 'rounded-[2px] bg-brandOrange' : 'rounded-[2px] bg-white/10';
+          cel.className = grid[f][c] ? 'rounded-[3px] bg-brandOrange shadow-[0_0_8px_rgba(245,113,27,0.6)]' : 'rounded-[3px] bg-white/10';
           cont.appendChild(cel);
         }
       }
@@ -391,7 +387,7 @@
           boton.type = 'button';
           const esLibre = (f === 2 && c === 2);
           const encendida = matrizDibujoTemp[f][c];
-          boton.className = `aspect-square rounded-md border-2 border-purple-700/40 text-[9px] font-bold flex items-center justify-center transition ${encendida ? 'bg-brandOrange text-white' : 'bg-white/5 text-purple-300'}`;
+          boton.className = `aspect-square rounded-lg text-[9px] font-bold flex items-center justify-center transition ${encendida ? 'cell-on bg-brandOrange text-white' : 'cell-glass text-purple-200'}`;
           boton.textContent = esLibre ? 'FREE' : '';
           boton.addEventListener('click', () => {
             matrizDibujoTemp[f][c] = !matrizDibujoTemp[f][c];
@@ -437,7 +433,7 @@
         colDiv.className = "flex flex-col gap-2";
 
         const header = document.createElement('div');
-        header.className = `bg-${coloresLetra[col]} rounded-lg text-center font-display font-black text-lg md:text-xl py-2 shadow text-white`;
+        header.className = `cell-on bg-${coloresLetra[col]} rounded-lg text-center font-display font-black text-lg md:text-xl py-2 text-white`;
         header.textContent = letras[col];
         colDiv.appendChild(header);
 
@@ -447,7 +443,7 @@
         for (let i = min; i <= max; i++) {
           const celda = document.createElement('div');
           celda.id = `balota-btn-${i}`;
-          celda.className = "w-full py-2.5 rounded-lg text-sm font-bold bg-gridBg/60 text-purple-300 transition flex items-center justify-center select-none";
+          celda.className = "cell-glass w-full py-2.5 rounded-lg text-sm font-bold text-purple-200 transition flex items-center justify-center select-none";
           celda.innerText = i;
           colDiv.appendChild(celda);
         }
@@ -479,7 +475,7 @@
       const circulo = document.getElementById('balota-actual-circulo');
       const coloresPorLetra = { B: 'letraB', I: 'letraI', N: 'letraN', G: 'letraG', O: 'letraO' };
 
-      const baseCirculo = "w-48 h-48 md:w-56 md:h-56 mx-auto rounded-full flex flex-col items-center justify-center border-4 border-white/10 shadow-2xl transition-colors";
+      const baseCirculo = "orb w-48 h-48 md:w-56 md:h-56 mx-auto rounded-full flex flex-col items-center justify-center transition-colors";
 
       if (ultima) {
         let letra = 'B';
@@ -498,7 +494,7 @@
       } else {
         elLetra.textContent = '—';
         elNumero.textContent = '--';
-        circulo.className = `bg-brandCard border-purple-800/40 ${baseCirculo}`;
+        circulo.className = `orb-vacia ${baseCirculo}`;
       }
 
       document.getElementById('contador-salidas').textContent = `${bolasCantadas.length} de 75 salieron`;
@@ -519,9 +515,9 @@
         const celda = document.getElementById(`balota-btn-${i}`);
         if (celda) {
           if (bolasCantadas.includes(i)) {
-            celda.className = "w-full py-2.5 rounded-lg text-sm font-black bg-brandOrange text-white shadow-lg transform scale-[1.02] select-none";
+            celda.className = "cell-on w-full py-2.5 rounded-lg text-sm font-black bg-brandOrange text-white transform scale-[1.03] select-none flex items-center justify-center";
           } else {
-            celda.className = "w-full py-2.5 rounded-lg text-sm font-bold bg-gridBg/60 text-purple-300 select-none";
+            celda.className = "cell-glass w-full py-2.5 rounded-lg text-sm font-bold text-purple-200 select-none flex items-center justify-center";
           }
         }
       }
@@ -529,7 +525,7 @@
       const elHistorial = document.getElementById('historial-reciente');
       if (bolasCantadas.length > 1) {
         const anteriores = bolasCantadas.slice(0, -1).reverse().slice(0, 5);
-        elHistorial.innerHTML = `<div class="flex gap-2 flex-wrap">${anteriores.map(n => `<span class="px-2.5 py-1 bg-purple-950/80 border border-purple-800/50 rounded-md font-bold text-amber-300">${n}</span>`).join('')}</div>`;
+        elHistorial.innerHTML = `<div class="flex gap-2 flex-wrap">${anteriores.map(n => `<span class="chip font-bold text-amber-300">${n}</span>`).join('')}</div>`;
       } else {
         elHistorial.innerText = "Aún no hay balotas anteriores";
       }
@@ -708,13 +704,13 @@
 
         let clases;
         if (perteneceAlPatron && cel.marcada) {
-          clases = 'bg-brandOrange text-white shadow ring-2 ring-white/60'; // requerida y ya cantada
+          clases = 'cell-on bg-brandOrange text-white ring-2 ring-white/60'; // requerida y ya cantada
         } else if (perteneceAlPatron && !cel.marcada) {
-          clases = 'bg-gridBg/60 text-purple-200 ring-2 ring-dashed ring-amber-400/70'; // requerida, aún falta
+          clases = 'cell-glass text-purple-100 ring-2 ring-dashed ring-amber-400/70'; // requerida, aún falta
         } else if (!perteneceAlPatron && cel.marcada) {
-          clases = 'bg-gridBg/40 text-purple-400'; // cantada pero no cuenta para esta modalidad
+          clases = 'cell-glass text-purple-200 opacity-75'; // cantada pero no cuenta para esta modalidad
         } else {
-          clases = 'bg-gridBg/20 text-purple-500/60'; // no cantada y no cuenta
+          clases = 'cell-glass text-purple-200 opacity-60'; // no cantada y no cuenta
         }
 
         gridHTML += `<div class="aspect-square rounded-lg flex items-center justify-center text-xs font-bold transition ${clases}">${cel.esLibre ? 'FREE' : cel.numero}</div>`;
@@ -863,7 +859,7 @@
         return;
       }
       historialGanadores.slice().reverse().forEach(g => {
-        const fila = crearElemento('div', 'flex justify-between items-center bg-gridBg/40 rounded-lg px-3 py-2', '');
+        const fila = crearElemento('div', 'glass-soft flex justify-between items-center px-3 py-2', '');
         fila.appendChild(crearElemento('span', 'text-xs text-purple-400', `Ronda ${g.ronda}`));
         fila.appendChild(crearElemento('span', 'font-bold text-amber-300', etiquetaTabla(g.idTabla)));
         cont.appendChild(fila);

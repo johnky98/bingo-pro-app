@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bingo Pro - Panel de Diseño de Tablas</title>
+  <link rel="stylesheet" href="../assets/liquid-glass.css">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -89,16 +90,16 @@
     }
   </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen font-sans flex flex-col">
+<body class="liquid-bg text-slate-100 min-h-screen font-sans flex flex-col">
 
   <!-- ENCABEZADO -->
-  <header class="bg-brandDark border-b border-purple-900/50 p-4 sticky top-0 z-50 shadow-lg">
+  <header class="glass-bar p-4 sticky top-0 z-50">
     <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-3">
-        <a href="../index.html" class="bg-slate-800 hover:bg-slate-700 text-xs text-purple-300 hover:text-white px-3 py-2 rounded-lg border border-slate-700 transition">
+        <a href="../index.html" class="btn-glass text-xs px-3 py-2 rounded-full">
           &larr; Volver al Menú
         </a>
-        <div class="bg-brandOrange text-white font-display font-black text-xl px-3 py-1 rounded shadow">1</div>
+        <div class="btn-liquid pointer-events-none font-display font-black text-xl px-3 py-1 rounded-lg">1</div>
         <div>
           <h1 class="font-display font-bold text-xl tracking-wide text-white">BINGO PRO - MÓDULO DISEÑO</h1>
           <p class="text-xs text-purple-300">Generador & Personalizador de Cartones</p>
@@ -106,14 +107,14 @@
       </div>
       
       <!-- SUBMENÚ DE NAVEGACIÓN -->
-      <nav class="flex bg-purple-950/80 p-1 rounded-xl border border-purple-800/40">
-        <button id="btn-tab-diseno" onclick="switchTab('diseno')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 bg-brandOrange text-white shadow">
+      <nav class="glass-soft flex p-1 rounded-full">
+        <button id="btn-tab-diseno" onclick="switchTab('diseno')" class="tab-btn btn-liquid px-4 py-2 rounded-full text-sm font-semibold text-white">
           🎨 Generador
         </button>
-        <button id="btn-tab-subir" onclick="switchTab('subir')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 text-purple-300 hover:text-white">
+        <button id="btn-tab-subir" onclick="switchTab('subir')" class="tab-btn px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 text-purple-300 hover:text-white">
           📤 Subir Plantilla
         </button>
-        <button id="btn-tab-imprimir" onclick="switchTab('imprimir')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 text-purple-300 hover:text-white">
+        <button id="btn-tab-imprimir" onclick="switchTab('imprimir')" class="tab-btn px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 text-purple-300 hover:text-white">
           🖨️ Imprimir
         </button>
       </nav>
@@ -125,22 +126,22 @@
 
     <!-- PESTAÑA 1: GENERADOR -->
     <section id="sec-diseno" class="tab-content grid grid-cols-1 lg:grid-cols-12 gap-8">
-      <div class="lg:col-span-6 bg-slate-800/90 border border-slate-700/80 rounded-2xl p-6 shadow-xl space-y-5">
+      <div class="glass lg:col-span-6 p-6 space-y-5">
         <div>
           <label class="block text-xs font-bold uppercase tracking-wider text-purple-400 mb-2">Plantillas (1-Clic)</label>
           <div class="grid grid-cols-3 gap-2">
-            <button onclick="aplicarPlantilla('politica')" class="px-3 py-2 bg-purple-950 hover:bg-purple-900 border border-purple-700/50 rounded-lg text-xs font-bold text-amber-300 transition">🏛️ Política</button>
-            <button onclick="aplicarPlantilla('corporativa')" class="px-3 py-2 bg-slate-900 hover:bg-slate-950 border border-slate-700 rounded-lg text-xs font-bold text-cyan-300 transition">🏢 Corporativa</button>
-            <button onclick="aplicarPlantilla('festiva')" class="px-3 py-2 bg-rose-950 hover:bg-rose-900 border border-rose-700/50 rounded-lg text-xs font-bold text-rose-300 transition">🎉 Festiva</button>
+            <button onclick="aplicarPlantilla('politica')" class="btn-glass px-3 py-2 rounded-xl text-xs text-amber-300">🏛️ Política</button>
+            <button onclick="aplicarPlantilla('corporativa')" class="btn-glass px-3 py-2 rounded-xl text-xs text-cyan-300">🏢 Corporativa</button>
+            <button onclick="aplicarPlantilla('festiva')" class="btn-glass px-3 py-2 rounded-xl text-xs text-rose-300">🎉 Festiva</button>
           </div>
         </div>
 
-        <hr class="border-slate-700">
+        <hr class="border-white/10">
 
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-purple-400 mb-1">Formato</label>
-            <select id="cfg-formato" onchange="actualizarVistaPrevia()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white outline-none">
+            <select id="cfg-formato" onchange="actualizarVistaPrevia()" class="glass-input w-full p-2 text-xs">
               <option value="5x5" selected>5×5 Clásico</option>
               <option value="4x4">4×4 Rápido</option>
               <option value="3x3">3×3 Mini</option>
@@ -166,7 +167,7 @@
           <label class="block text-xs font-bold uppercase tracking-wider text-purple-400">Logo & Posición</label>
           <input type="file" id="cfg-logo-file" accept="image/*" onchange="cargarLogo(event)" class="block w-full text-xs text-slate-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brandOrange file:text-white cursor-pointer">
           <div class="grid grid-cols-2 gap-2">
-            <select id="cfg-posicion-logo" onchange="actualizarVistaPrevia()" class="bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white outline-none">
+            <select id="cfg-posicion-logo" onchange="actualizarVistaPrevia()" class="glass-input p-1.5 text-xs">
               <option value="superior">Encabezado (Superior)</option>
               <option value="marca-agua">Marca de Agua (Centro)</option>
               <option value="pie">Pie de Página</option>
@@ -180,12 +181,12 @@
 
         <div>
           <label class="block text-xs font-bold uppercase tracking-wider text-purple-400 mb-1">Título de Campaña</label>
-          <input type="text" id="cfg-titulo" value="¡ACTITUD POSITIVA!" oninput="actualizarVistaPrevia()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white outline-none">
+          <input type="text" id="cfg-titulo" value="¡ACTITUD POSITIVA!" oninput="actualizarVistaPrevia()" class="glass-input w-full p-2 text-xs">
         </div>
       </div>
 
       <!-- PREVIEW -->
-      <div class="lg:col-span-6 flex flex-col items-center justify-start bg-slate-950/60 border border-slate-800 rounded-2xl p-6 shadow-inner">
+      <div class="glass-soft lg:col-span-6 flex flex-col items-center justify-start rounded-2xl p-6">
         <span class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Vista Previa Generador</span>
         <div id="carton-preview" class="w-full max-w-md aspect-[3/4] rounded-2xl p-5 shadow-2xl flex flex-col justify-between relative overflow-hidden" style="background-color: #2E1065;">
           <div id="prev-watermark" class="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none hidden">
@@ -212,7 +213,7 @@
 
     <!-- PESTAÑA 2: SUBIR TABLA -->
     <section id="sec-subir" class="tab-content hidden grid grid-cols-1 lg:grid-cols-12 gap-8">
-      <div class="lg:col-span-5 bg-slate-800/90 border border-slate-700/80 rounded-2xl p-6 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
+      <div class="glass lg:col-span-5 p-6 space-y-4 max-h-[85vh] overflow-y-auto">
         <h2 class="text-base font-bold text-white flex items-center gap-2">
           <span>📤</span> Personalizar Tabla Subida
         </h2>
@@ -222,7 +223,7 @@
           <input type="file" id="subir-diseno-file" accept="image/*" onchange="cargarFondoPersonalizado(event)" class="block w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-brandOrange file:text-white cursor-pointer">
         </div>
 
-        <hr class="border-slate-700">
+        <hr class="border-white/10">
 
         <div class="space-y-2">
           <label class="block text-xs font-bold uppercase tracking-wider text-purple-400">2. Subir Logo (Opcional)</label>
@@ -230,7 +231,7 @@
           <div class="grid grid-cols-2 gap-2 pt-1">
             <div>
               <span class="text-[10px] text-slate-300 block mb-1">Posición Logo</span>
-              <select id="custom-logo-pos" onchange="actualizarEstilosCustom()" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white outline-none">
+              <select id="custom-logo-pos" onchange="actualizarEstilosCustom()" class="glass-input w-full p-1.5 text-xs">
                 <option value="superior" selected>Superior (Encabezado)</option>
                 <option value="marca-agua">Marca de Agua (Centro)</option>
                 <option value="pie">Pie de Página</option>
@@ -243,18 +244,18 @@
           </div>
         </div>
 
-        <hr class="border-slate-700">
+        <hr class="border-white/10">
 
         <div class="space-y-3">
           <label class="block text-xs font-bold uppercase tracking-wider text-purple-400">3. Textos y Cabecera (B I N G O)</label>
 
-          <div class="flex items-center gap-2 bg-slate-900/80 p-2 rounded-lg border border-slate-700">
+          <div class="glass-soft flex items-center gap-2 p-2">
             <input type="checkbox" id="custom-show-title" onchange="actualizarEstilosCustom()" class="w-4 h-4 accent-brandOrange rounded cursor-pointer">
             <label for="custom-show-title" class="text-xs text-slate-200 cursor-pointer font-medium">Mostrar Título Superior</label>
           </div>
-          <input type="text" id="custom-titulo-txt" value="MI GRAN BINGO" oninput="actualizarEstilosCustom()" placeholder="Escribe tu título..." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white outline-none">
+          <input type="text" id="custom-titulo-txt" value="MI GRAN BINGO" oninput="actualizarEstilosCustom()" placeholder="Escribe tu título..." class="glass-input w-full p-2 text-xs">
 
-          <div class="flex items-center gap-2 bg-slate-900/80 p-2 rounded-lg border border-slate-700">
+          <div class="glass-soft flex items-center gap-2 p-2">
             <input type="checkbox" id="custom-show-bingo-header" onchange="actualizarEstilosCustom()" class="w-4 h-4 accent-brandOrange rounded cursor-pointer">
             <label for="custom-show-bingo-header" class="text-xs text-slate-200 cursor-pointer font-medium">Mostrar Letras B I N G O</label>
           </div>
@@ -270,12 +271,12 @@
           </div>
         </div>
 
-        <hr class="border-slate-700">
+        <hr class="border-white/10">
 
         <div class="space-y-3">
           <label class="block text-xs font-bold uppercase tracking-wider text-purple-400">4. Cuadrícula y Números</label>
           
-          <div class="flex items-center gap-2 bg-slate-900/80 p-2 rounded-lg border border-slate-700">
+          <div class="glass-soft flex items-center gap-2 p-2">
             <input type="checkbox" id="custom-show-box" checked onchange="actualizarEstilosCustom()" class="w-4 h-4 accent-brandOrange rounded cursor-pointer">
             <label for="custom-show-box" class="text-xs text-slate-200 cursor-pointer font-medium">Mostrar fondo y bordes de casillas</label>
           </div>
@@ -324,15 +325,15 @@
           </div>
         </div>
 
-        <hr class="border-slate-700">
+        <hr class="border-white/10">
 
-        <button onclick="usarSubidaEImprimir()" class="w-full py-3 bg-green-600 hover:bg-green-500 text-white font-bold rounded-xl text-sm shadow-lg transition flex items-center justify-center gap-2">
+        <button onclick="usarSubidaEImprimir()" class="btn-verde w-full py-3 rounded-full text-sm flex items-center justify-center gap-2">
           <span>🚀 Usar este Diseño e Imprimir</span>
         </button>
       </div>
 
       <!-- PREVIEW CUSTOM -->
-      <div class="lg:col-span-7 flex flex-col items-center justify-start bg-slate-950/60 border border-slate-800 rounded-2xl p-6 shadow-inner">
+      <div class="glass-soft lg:col-span-7 flex flex-col items-center justify-start rounded-2xl p-6">
         <span class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Ajuste de Calce Exacto</span>
         
         <div id="carton-custom-container" class="relative w-full max-w-md aspect-[3/4] bg-slate-900 rounded-xl border border-dashed border-slate-700 flex items-center justify-center overflow-hidden">
@@ -368,7 +369,7 @@
 
     <!-- PESTAÑA 3: IMPRIMIR TABLA -->
     <section id="sec-imprimir" class="tab-content hidden space-y-6">
-      <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="glass p-6 flex flex-col md:flex-row items-center justify-between gap-4">
         <div>
           <h2 class="text-lg font-bold text-white">🖨️ Centro de Impresión & Vista Detallada</h2>
           <p class="text-xs text-slate-300">Visualiza las páginas completas (organizadas en hojas de 4 tablas) para detallar cada diseño antes de imprimir.</p>
@@ -377,7 +378,7 @@
           <div class="flex flex-col">
             <label class="text-[10px] uppercase font-bold text-purple-400 mb-1">Cantidad de Tablas:</label>
             <div class="flex items-center gap-2">
-              <select id="cant-imprimir-preset" onchange="manejarCambioCantidad()" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs font-bold text-amber-400 outline-none">
+              <select id="cant-imprimir-preset" onchange="manejarCambioCantidad()" class="glass-input px-3 py-2 text-xs font-bold text-amber-300">
                 <option value="10" selected>🎁 10 Tablas (Prueba Gratis)</option>
                 <option value="50">50 Tablas</option>
                 <option value="200">200 Tablas</option>
@@ -385,30 +386,30 @@
                 <option value="custom">✏️ Personalizado...</option>
               </select>
 
-              <input type="number" id="cant-imprimir-custom" min="1" max="2000" value="10" oninput="renderizarLoteImpresion()" placeholder="Cant." class="hidden w-24 bg-slate-900 border border-amber-500/80 rounded-lg px-3 py-2 text-xs font-bold text-amber-400 outline-none">
+              <input type="number" id="cant-imprimir-custom" min="1" max="2000" value="10" oninput="renderizarLoteImpresion()" placeholder="Cant." class="hidden glass-input w-24 border-amber-500/70 px-3 py-2 text-xs font-bold text-amber-300">
             </div>
           </div>
 
-          <div class="flex flex-col justify-end text-right sm:border-l sm:border-slate-700 sm:pl-3">
+          <div class="flex flex-col justify-end text-right sm:border-l sm:border-white/10 sm:pl-3">
             <span class="text-[10px] text-slate-400">Estimación Papel:</span>
             <span id="info-hojas-totales" class="text-xs font-bold text-green-400">3 Hojas Carta</span>
           </div>
 
-          <button onclick="regenerarLoteManual()" title="Genera nuevos números aleatorios para este mismo lote" class="px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl text-sm shadow-lg transition flex items-center justify-center gap-2 mt-2 sm:mt-0">
+          <button onclick="regenerarLoteManual()" title="Genera nuevos números aleatorios para este mismo lote" class="btn-glass px-4 py-2.5 rounded-full text-sm whitespace-nowrap flex items-center justify-center gap-2 mt-2 sm:mt-0">
             <span>🔄 Nuevo Lote</span>
           </button>
 
-          <button onclick="exportarTablasJSON()" title="Descarga un archivo JSON con el ID y los números exactos de cada tabla, para verificar ganadores en el módulo de Balotera" class="px-4 py-2.5 bg-purple-700 hover:bg-purple-600 text-white font-bold rounded-xl text-sm shadow-lg transition flex items-center justify-center gap-2 mt-2 sm:mt-0">
+          <button onclick="exportarTablasJSON()" title="Descarga un archivo JSON con el ID y los números exactos de cada tabla, para verificar ganadores en el módulo de Balotera" class="btn-glass px-4 py-2.5 rounded-full text-sm whitespace-nowrap flex items-center justify-center gap-2 mt-2 sm:mt-0">
             <span>📥 Exportar Tablas</span>
           </button>
 
-          <button onclick="generarEImprimir()" class="px-5 py-2.5 bg-brandOrange hover:bg-orange-600 text-white font-bold rounded-xl text-sm shadow-lg transition flex items-center justify-center gap-2 mt-2 sm:mt-0">
+          <button onclick="generarEImprimir()" class="btn-liquid px-5 py-2.5 rounded-full text-sm whitespace-nowrap flex items-center justify-center gap-2 mt-2 sm:mt-0">
             <span>🖨️ Imprimir / Guardar PDF</span>
           </button>
         </div>
       </div>
 
-      <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl px-6 py-4 shadow-xl flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
+      <div class="glass px-6 py-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
         <label class="flex items-center gap-2.5 cursor-pointer">
           <input type="checkbox" id="cfg-incluir-qr" checked onchange="onCambioIncluirQR()" class="w-4 h-4 accent-brandOrange">
           <span class="text-sm text-white font-semibold">📱 Incluir QR de registro en cada tarjeta</span>
@@ -497,13 +498,13 @@
     function switchTab(tabId) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
       document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('bg-brandOrange', 'text-white', 'shadow');
+        btn.classList.remove('btn-liquid', 'text-white');
         btn.classList.add('text-purple-300');
       });
 
       document.getElementById(`sec-${tabId}`).classList.remove('hidden');
       const btnActivo = document.getElementById(`btn-tab-${tabId}`);
-      btnActivo.classList.add('bg-brandOrange', 'text-white', 'shadow');
+      btnActivo.classList.add('btn-liquid', 'text-white');
       btnActivo.classList.remove('text-purple-300');
 
       if(tabId === 'diseno') modoOrigen = 'generador';

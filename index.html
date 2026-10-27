@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bingo Pro - Panel Central</title>
+  <link rel="stylesheet" href="assets/liquid-glass.css">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -20,17 +21,17 @@
     }
   </script>
 </head>
-<body class="bg-[#130A2A] text-white min-h-screen flex flex-col justify-center items-center p-6 font-sans">
+<body class="liquid-bg text-white min-h-screen flex flex-col justify-center items-center p-6 font-sans">
   <div class="max-w-4xl w-full text-center space-y-8">
     <div>
-      <h1 class="text-4xl sm:text-5xl font-black tracking-wide text-white mb-2">BINGO PRO</h1>
+      <h1 class="text-5xl sm:text-6xl font-black tracking-wide text-transparent bg-clip-text bg-gradient-to-b from-white to-purple-200 mb-2 drop-shadow-[0_4px_28px_rgba(245,113,27,0.35)]">BINGO PRO</h1>
       <p class="text-purple-300 text-sm sm:text-base">Juega bingo online, gratis y sin registro</p>
     </div>
     <!-- TARJETAS DE MÓDULOS -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
 
       <!-- DISEÑO DE TABLA -->
-      <a href="modulo_diseno/index.html" class="bg-[#201140] hover:bg-[#2b1654] border border-purple-800/40 hover:border-brandOrange p-6 rounded-2xl shadow-xl transition transform hover:-translate-y-1 flex flex-col justify-between space-y-4 group">
+      <a href="modulo_diseno/index.html" class="glass glass-hover p-6 flex flex-col justify-between space-y-4 group">
         <div>
           <div class="text-3xl mb-3">🎨</div>
           <h2 class="text-xl font-bold text-white group-hover:text-brandOrange transition">Diseño de Tabla</h2>
@@ -39,7 +40,7 @@
         <span class="inline-block text-xs font-bold uppercase tracking-wider text-brandOrange">Ingresar al Módulo &rarr;</span>
       </a>
       <!-- JUEGO ONLINE (QR), SIN REGISTRO -->
-      <a href="modulo_juego_online/index.html" class="bg-[#201140] hover:bg-[#2b1654] border border-purple-800/40 hover:border-brandOrange p-6 rounded-2xl shadow-xl transition transform hover:-translate-y-1 flex flex-col justify-between space-y-4 group">
+      <a href="modulo_juego_online/index.html" class="glass glass-hover p-6 flex flex-col justify-between space-y-4 group">
         <div>
           <div class="text-3xl mb-3">📱</div>
           <h2 class="text-xl font-bold text-white group-hover:text-brandOrange transition">Juego Online (QR)</h2>
@@ -48,7 +49,7 @@
         <span class="inline-block text-xs font-bold uppercase tracking-wider text-brandOrange">Ingresar al Módulo &rarr;</span>
       </a>
       <!-- BALOTERA -->
-      <a href="modulo_balotera/index.html" class="bg-[#201140] hover:bg-[#2b1654] border border-purple-800/40 hover:border-brandOrange p-6 rounded-2xl shadow-xl transition transform hover:-translate-y-1 flex flex-col justify-between space-y-4 group">
+      <a href="modulo_balotera/index.html" class="glass glass-hover p-6 flex flex-col justify-between space-y-4 group">
         <div>
           <div class="text-3xl mb-3">🎰</div>
           <h2 class="text-xl font-bold text-white group-hover:text-brandOrange transition">Balotera & Control</h2>

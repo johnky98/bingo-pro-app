@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bingo Pro - Juego Online (QR)</title>
+  <link rel="stylesheet" href="../assets/liquid-glass.css">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -30,10 +31,6 @@
     }
   </script>
   <style>
-    body {
-      background-color: #130A2A;
-      background-image: radial-gradient(circle at top right, #2b1254 0%, #130A2A 60%);
-    }
     @keyframes pulso {
       0% { transform: scale(0.9); opacity: 0.4; }
       60% { transform: scale(1.03); opacity: 1; }
@@ -44,12 +41,12 @@
     .hidden { display: none !important; }
   </style>
 </head>
-<body class="text-white min-h-screen font-sans">
+<body class="liquid-bg text-white min-h-screen font-sans">
 
   <!-- ============== VISTA DEL JUGADOR (se activa si la URL trae ?c=...) ============== -->
   <div id="vista-jugador" class="hidden max-w-md mx-auto px-4 py-8 min-h-screen flex-col items-center justify-center">
     <div class="w-full flex items-center justify-between mb-6">
-      <span class="bg-brandOrange text-white font-display font-black text-sm px-4 py-1.5 rounded-lg shadow">
+      <span class="btn-liquid pointer-events-none font-display font-black text-sm px-4 py-1.5 rounded-full">
         BINGO PRO
       </span>
       <span class="text-xs text-purple-300">Sala Online</span>
@@ -58,7 +55,7 @@
     <p class="uppercase tracking-[0.25em] text-xs text-purple-300 mb-1 text-center">Tu tabla de bingo</p>
     <p id="jugador-etiqueta" class="font-display font-black text-2xl mb-5 text-center">Jugador 1</p>
 
-    <div id="carton-jugador" class="hidden w-full bg-brandCard border border-purple-800/40 rounded-2xl p-3 shadow-2xl grid grid-cols-5 gap-2"></div>
+    <div id="carton-jugador" class="hidden glass w-full p-3 grid grid-cols-5 gap-2"></div>
 
     <p id="nota-marcado-jugador" class="hidden text-xs text-purple-300 mt-5 text-center leading-relaxed">
       Toca una casilla para marcarla a medida que el presentador cante los números.<br>
@@ -71,14 +68,14 @@
 
     <!-- BOTÓN VOLVER AL MENÚ -->
     <div class="w-full flex justify-between items-center mb-4">
-      <a href="../index.html" class="bg-purple-950/80 hover:bg-purple-900 border border-purple-800/50 text-purple-300 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold transition">
+      <a href="../index.html" class="btn-glass px-3 py-1.5 rounded-full text-xs">
         &larr; Volver al Menú Principal
       </a>
       <span class="text-xs font-bold tracking-widest text-purple-400">JUEGO ONLINE (QR)</span>
     </div>
 
     <!-- PANEL 1: CONFIGURACIÓN INICIAL -->
-    <div id="panel-configuracion" class="bg-brandCard/80 border border-purple-900/40 rounded-3xl p-4 md:p-6 shadow-2xl backdrop-blur-sm mb-6">
+    <div id="panel-configuracion" class="glass p-4 md:p-6 mb-6">
       <h1 class="font-display font-black text-xl md:text-2xl mb-1">📱 Sala Online</h1>
       <p class="text-xs text-purple-300 mb-5">
         Genera una tabla única por jugador. El código QR se muestra de a uno: cada persona escanea el suyo desde este mismo dispositivo,
@@ -87,14 +84,14 @@
 
       <!-- IMPORTAR TABLAS DEL MÓDULO DE DISEÑO: para que el cartón que abre el QR de la
            tarjeta física #N sea exactamente el mismo #N que se imprimió. -->
-      <div class="mb-5 pb-5 border-b border-purple-900/40">
+      <div class="mb-5 pb-5 border-b border-white/10">
         <label class="uppercase tracking-[0.2em] text-[10px] text-purple-400 block mb-1">Tablas impresas (opcional)</label>
         <p class="text-xs text-purple-300 mb-3">
           Importa el JSON exportado desde el módulo de Diseño (botón "📥 Exportar Tablas") para que la tabla que
           abre el QR de la tarjeta física #N coincida exactamente con la tabla #N que ya se imprimió y repartió.
         </p>
         <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-          <label class="px-4 py-2.5 bg-purple-700 hover:bg-purple-600 text-white font-bold rounded-xl text-sm shadow-lg transition cursor-pointer">
+          <label class="btn-glass px-4 py-2.5 rounded-xl text-sm cursor-pointer">
             📂 Importar Tablas (JSON)
             <input type="file" id="input-importar-tablas-diseno" accept="application/json" class="hidden">
           </label>
@@ -106,7 +103,7 @@
         <div id="bloque-modo-aleatorio" class="flex flex-col gap-1">
           <label for="select-max-jugadores" class="uppercase tracking-[0.2em] text-[10px] text-purple-400">Jugadores en la sala</label>
           <select id="select-max-jugadores"
-            class="bg-gridBg text-white border border-purple-800/40 rounded-xl px-4 py-3 text-sm md:text-base font-semibold outline-none focus:ring-2 focus:ring-brandOrange">
+            class="glass-input px-4 py-3 text-sm md:text-base font-semibold">
             <option value="1">1 jugador</option>
             <option value="2">2 jugadores</option>
             <option value="3">3 jugadores</option>
@@ -124,10 +121,10 @@
           <label class="uppercase tracking-[0.2em] text-[10px] text-purple-400">Rango de tarjetas importadas a generar</label>
           <div class="flex items-center gap-2">
             <input type="number" id="input-rango-desde" min="1"
-              class="w-24 bg-gridBg text-white border border-purple-800/40 rounded-xl px-3 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-brandOrange" placeholder="Desde">
+              class="glass-input w-24 px-3 py-3 text-sm font-semibold" placeholder="Desde">
             <span class="text-purple-400 text-sm">a</span>
             <input type="number" id="input-rango-hasta" min="1"
-              class="w-24 bg-gridBg text-white border border-purple-800/40 rounded-xl px-3 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-brandOrange" placeholder="Hasta">
+              class="glass-input w-24 px-3 py-3 text-sm font-semibold" placeholder="Hasta">
           </div>
           <button id="btn-usar-modo-aleatorio" type="button" class="text-[11px] text-purple-400 hover:text-white underline underline-offset-2 mt-1 text-left">
             Usar tablas aleatorias en su lugar
@@ -135,12 +132,12 @@
         </div>
 
         <button id="btn-generar-sala"
-          class="px-5 py-3 rounded-xl text-sm font-bold bg-brandOrange hover:bg-brandOrangeHover text-white transition shadow">
+          class="btn-liquid px-5 py-3 rounded-full text-sm">
           🎟️ Generar Sala y Comenzar
         </button>
       </div>
 
-      <p id="aviso-sin-conexion" class="hidden text-xs text-amber-300 bg-brandDark/60 border border-amber-500/30 rounded-lg px-3 py-2 mt-4">
+      <p id="aviso-sin-conexion" class="hidden glass-soft border-amber-500/30 text-xs text-amber-300 px-3 py-2 mt-4">
         ⚠️ Esta página se abrió como archivo local (file://). Los códigos QR generados solo funcionarán si subes este mismo archivo HTML
         a un hosting con URL pública (por ejemplo Netlify) y lo abres desde ahí — de lo contrario los celulares
         no podrán acceder a la tabla al escanear.
@@ -148,7 +145,7 @@
     </div>
 
     <!-- PANEL 2: REVELADO SECUENCIAL DE QR (uno a la vez) -->
-    <div id="panel-secuencial" class="hidden bg-brandCard/80 border border-purple-900/40 rounded-3xl p-4 md:p-8 shadow-2xl backdrop-blur-sm mb-6 flex flex-col items-center text-center">
+    <div id="panel-secuencial" class="hidden glass p-4 md:p-8 mb-6 flex flex-col items-center text-center">
 
       <p id="aviso-sin-conexion-qr" class="hidden w-full max-w-lg text-sm text-white bg-rose-700/90 border-2 border-rose-400 rounded-xl px-4 py-3 mb-5 text-left">
         🚫 <strong>Este QR NO va a funcionar todavía.</strong> Estás viendo el archivo local de tu computador (file://), no la versión
@@ -169,19 +166,19 @@
       </a>
 
       <div class="w-full max-w-sm flex items-center gap-3">
-        <button id="btn-jugador-anterior" class="px-4 py-3 rounded-xl text-sm font-bold bg-gridBg hover:bg-purple-800 text-white transition">
+        <button id="btn-jugador-anterior" class="btn-glass px-4 py-3 rounded-xl text-sm">
           ← Anterior
         </button>
-        <button id="btn-jugador-siguiente" class="flex-1 px-4 py-3 rounded-xl text-sm font-bold bg-brandOrange hover:bg-brandOrangeHover text-white transition shadow">
+        <button id="btn-jugador-siguiente" class="btn-liquid flex-1 px-4 py-3 rounded-full text-sm">
           Siguiente Jugador →
         </button>
       </div>
 
-      <button id="btn-finalizar-sala" class="hidden w-full max-w-sm mt-3 px-4 py-4 rounded-xl text-base font-display font-black bg-green-600 hover:bg-green-500 text-white transition shadow-lg">
+      <button id="btn-finalizar-sala" class="btn-verde hidden w-full max-w-sm mt-3 px-4 py-4 rounded-full text-base font-display font-black">
         ✅ Finalizar e ir a la Balotera →
       </button>
 
-      <div class="w-full max-w-sm flex items-center justify-between mt-6 pt-4 border-t border-purple-900/40">
+      <div class="w-full max-w-sm flex items-center justify-between mt-6 pt-4 border-t border-white/10">
         <button id="btn-reiniciar-sala" class="text-xs text-purple-400 hover:text-white underline underline-offset-2 transition">
           ↺ Generar una sala nueva
         </button>
@@ -539,8 +536,8 @@
           const clave = `${fila}-${col}`;
           const marcada = esLibre || !!marcas[clave];
 
-          celda.className = `aspect-square rounded-lg border-2 flex items-center justify-center font-bold text-sm md:text-base transition select-none
-            ${marcada ? `bg-${coloresLetra[col]} text-white border-white/20` : 'bg-brandDark text-purple-200 border-purple-800/40'}`;
+          celda.className = `aspect-square rounded-lg flex items-center justify-center font-bold text-sm md:text-base transition select-none
+            ${marcada ? `cell-on bg-${coloresLetra[col]} text-white` : 'cell-glass text-purple-100'}`;
           celda.textContent = esLibre ? 'FREE' : datos.cols[col][fila];
 
           if (!esLibre) {
@@ -548,9 +545,9 @@
               marcas[clave] = !marcas[clave];
               guardarMarcasJugador(codigo, marcas);
               if (marcas[clave]) {
-                celda.className = `aspect-square rounded-lg border-2 flex items-center justify-center font-bold text-sm md:text-base transition select-none bg-${coloresLetra[col]} text-white border-white/20`;
+                celda.className = `aspect-square rounded-lg flex items-center justify-center font-bold text-sm md:text-base transition select-none cell-on bg-${coloresLetra[col]} text-white`;
               } else {
-                celda.className = 'aspect-square rounded-lg border-2 flex items-center justify-center font-bold text-sm md:text-base transition select-none bg-brandDark text-purple-200 border-purple-800/40';
+                celda.className = 'aspect-square rounded-lg flex items-center justify-center font-bold text-sm md:text-base transition select-none cell-glass text-purple-100';
               }
             });
           }
