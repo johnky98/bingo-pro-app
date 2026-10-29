@@ -1038,6 +1038,7 @@
     }
 
     let esperandoImpresion = false;
+    let loteImpresoSinExportar = false; // se imprimió algo desde la última exportación a JSON
 
     function generarEImprimir() {
       if (esperandoImpresion) return;
@@ -1050,6 +1051,7 @@
           'Si imprimes ahora, esas tarjetas saldrán sin ellas.\n\n¿Imprimir de todos modos? Cancela para revisar tu conexión y volver a intentarlo.')) {
           return;
         }
+        loteImpresoSinExportar = true;
         window.print();
       });
     }
@@ -1077,7 +1079,16 @@
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+      loteImpresoSinExportar = false;
     }
+
+    // El lote solo vive en memoria: si se imprimió y no se exportó, al cerrar o recargar la página
+    // se pierde la lista exacta de tablas y no habrá con qué verificar ganadores en la Balotera.
+    window.addEventListener('beforeunload', e => {
+      if (!loteImpresoSinExportar) return;
+      e.preventDefault();
+      e.returnValue = ''; // necesario en Chrome para que muestre el aviso de salida
+    });
 
     window.onload = function() {
       actualizarVistaPrevia();
