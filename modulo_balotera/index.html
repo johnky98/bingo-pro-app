@@ -537,7 +537,9 @@
       const elHistorial = document.getElementById('historial-reciente');
       if (bolasCantadas.length > 1) {
         const anteriores = bolasCantadas.slice(0, -1).reverse().slice(0, 5);
-        elHistorial.innerHTML = `<div class="flex gap-2 flex-wrap">${anteriores.map(n => `<span class="chip font-bold text-amber-300">${n}</span>`).join('')}</div>`;
+        const fila = crearElemento('div', 'flex gap-2 flex-wrap', '');
+        anteriores.forEach(n => fila.appendChild(crearElemento('span', 'chip font-bold text-amber-300', String(n))));
+        elHistorial.replaceChildren(fila);
       } else {
         elHistorial.innerText = "Aún no hay balotas anteriores";
       }
@@ -549,7 +551,7 @@
     // (se usa tras sacar una balota y también tras cambiar la modalidad de juego,
     // para que el veredicto nunca quede desactualizado).
     function refrescarVerificacionSiHayTablaVisible() {
-      if (document.getElementById('input-id-tabla').value.trim() !== '' && document.getElementById('resultado-verificacion').innerHTML !== '') {
+      if (document.getElementById('input-id-tabla').value.trim() !== '' && document.getElementById('resultado-verificacion').hasChildNodes()) {
         verificarTabla();
       }
     }
@@ -693,22 +695,27 @@
       const idInput = document.getElementById('input-id-tabla');
       const id = idInput.value.trim();
       const resultado = document.getElementById('resultado-verificacion');
+      // Los números vienen de archivos importados: se pintan con textContent, nunca como HTML.
+      resultado.replaceChildren();
 
       if (!id) {
-        resultado.innerHTML = '<p class="text-xs text-purple-400">Escribe el número de tabla a verificar.</p>';
+        resultado.appendChild(crearElemento('p', 'text-xs text-purple-400', 'Escribe el número de tabla a verificar.'));
         return;
       }
 
       const columnas = tablasImportadas[id] || tablasImportadas[String(parseInt(id, 10))];
       if (!columnas) {
-        resultado.innerHTML = `<div class="bg-rose-950/40 border border-rose-700/50 rounded-xl p-3 text-center"><p class="text-sm text-rose-300 font-bold">⚠️ No se encontró la tabla #${id}.</p><p class="text-xs text-rose-400/80 mt-1">Verifica el número o que importaste el archivo correcto.</p></div>`;
+        const aviso = crearElemento('div', 'bg-rose-950/40 border border-rose-700/50 rounded-xl p-3 text-center', '');
+        aviso.appendChild(crearElemento('p', 'text-sm text-rose-300 font-bold', `⚠️ No se encontró la tabla #${id}.`));
+        aviso.appendChild(crearElemento('p', 'text-xs text-rose-400/80 mt-1', 'Verifica el número o que importaste el archivo correcto.'));
+        resultado.appendChild(aviso);
         return;
       }
 
       const { matriz, patron, esGanadora, requeridas, cumplidas, numerosFaltantes } =
         tablaCumplePatron(columnas, patronActivo, bolasCantadas);
 
-      let gridHTML = '<div class="grid grid-cols-5 gap-1.5 max-w-xs mx-auto mb-4">';
+      const grid = crearElemento('div', 'grid grid-cols-5 gap-1.5 max-w-xs mx-auto mb-4', '');
       matriz.flat().forEach((cel, idx) => {
         const f = Math.floor(idx / 5);
         const c = idx % 5;
@@ -725,25 +732,32 @@
           clases = 'cell-glass text-purple-200 opacity-60'; // no cantada y no cuenta
         }
 
-        gridHTML += `<div class="aspect-square rounded-lg flex items-center justify-center text-xs font-bold transition ${clases}">${cel.esLibre ? 'FREE' : cel.numero}</div>`;
+        grid.appendChild(crearElemento('div', `aspect-square rounded-lg flex items-center justify-center text-xs font-bold transition ${clases}`, cel.esLibre ? 'FREE' : String(cel.numero)));
       });
-      gridHTML += '</div>';
 
-      let veredictoHTML;
-      if (esGanadora) {
-        veredictoHTML = `<div class="bg-green-900/30 border-2 border-green-500 rounded-xl p-4 text-center">
-          <p class="text-xl font-display font-black text-green-400 mb-1">✅ ¡BINGO VÁLIDO!</p>
-          <p class="text-xs text-green-300">Cumple la modalidad activa: <strong>${patronActivo.nombre}</strong></p>
-        </div>`;
-      } else {
-        veredictoHTML = `<div class="bg-rose-950/40 border-2 border-rose-600/70 rounded-xl p-4 text-center">
-          <p class="text-lg font-display font-black text-rose-300 mb-1">❌ Faltan números</p>
-          <p class="text-xs text-rose-300/90 mb-1">Modalidad activa: <strong>${patronActivo.nombre}</strong> — ${cumplidas}/${requeridas} casillas cumplidas</p>
-          ${numerosFaltantes.length > 0 ? `<p class="text-xs text-rose-200">Faltan: ${numerosFaltantes.join(', ')}</p>` : ''}
-        </div>`;
+      // Línea con la modalidad en negrita: "<prefijo><strong>nombre</strong><sufijo>"
+      function lineaModalidad(clases, prefijo, sufijo) {
+        const p = crearElemento('p', clases, prefijo);
+        p.appendChild(crearElemento('strong', '', patronActivo.nombre));
+        if (sufijo) p.appendChild(document.createTextNode(sufijo));
+        return p;
       }
 
-      resultado.innerHTML = `<p class="text-xs text-purple-400 mb-2 text-center">Tabla #${String(id).padStart(4, '0')}</p>` + gridHTML + veredictoHTML;
+      let veredicto;
+      if (esGanadora) {
+        veredicto = crearElemento('div', 'bg-green-900/30 border-2 border-green-500 rounded-xl p-4 text-center', '');
+        veredicto.appendChild(crearElemento('p', 'text-xl font-display font-black text-green-400 mb-1', '✅ ¡BINGO VÁLIDO!'));
+        veredicto.appendChild(lineaModalidad('text-xs text-green-300', 'Cumple la modalidad activa: '));
+      } else {
+        veredicto = crearElemento('div', 'bg-rose-950/40 border-2 border-rose-600/70 rounded-xl p-4 text-center', '');
+        veredicto.appendChild(crearElemento('p', 'text-lg font-display font-black text-rose-300 mb-1', '❌ Faltan números'));
+        veredicto.appendChild(lineaModalidad('text-xs text-rose-300/90 mb-1', 'Modalidad activa: ', ` — ${cumplidas}/${requeridas} casillas cumplidas`));
+        if (numerosFaltantes.length > 0) {
+          veredicto.appendChild(crearElemento('p', 'text-xs text-rose-200', `Faltan: ${numerosFaltantes.join(', ')}`));
+        }
+      }
+
+      resultado.append(crearElemento('p', 'text-xs text-purple-400 mb-2 text-center', `Tabla #${String(id).padStart(4, '0')}`), grid, veredicto);
     }
 
     // ============================================================
