@@ -1023,11 +1023,35 @@
       pintarLoteEnPantalla();
     }
 
+    // Espera a que carguen (o fallen) las imágenes de las tarjetas, con un tope de tiempo, y devuelve
+    // cuántas no están listas. Los QR vienen de un servicio externo: si tarda o no responde, las
+    // tarjetas saldrían impresas sin QR sin que nadie lo note.
+    function esperarImagenes(contenedor, maxMs) {
+      // Cada cartón clonado trae <img> de logo y marca de agua sin src cuando no se usan: no cuentan.
+      const imgs = [...contenedor.querySelectorAll('img')].filter(img => img.getAttribute('src'));
+      const pendientes = imgs.filter(img => !img.complete).map(img => new Promise(ok => {
+        img.addEventListener('load', ok, { once: true });
+        img.addEventListener('error', ok, { once: true });
+      }));
+      return Promise.race([Promise.all(pendientes), new Promise(ok => setTimeout(ok, maxMs))])
+        .then(() => ({ total: imgs.length, sinCargar: imgs.filter(img => !img.complete || img.naturalWidth === 0).length }));
+    }
+
+    let esperandoImpresion = false;
+
     function generarEImprimir() {
+      if (esperandoImpresion) return;
+      esperandoImpresion = true;
       renderizarLoteImpresion(); // solo genera si aún no hay lote para esta cantidad
-      setTimeout(() => {
+      esperarImagenes(document.getElementById('area-impresion'), 15000).then(({ total, sinCargar }) => {
+        esperandoImpresion = false;
+        if (sinCargar > 0 && !confirm(
+          `${sinCargar} de ${total} imágenes de las tarjetas no han cargado (por ejemplo, los QR del servicio externo). ` +
+          'Si imprimes ahora, esas tarjetas saldrán sin ellas.\n\n¿Imprimir de todos modos? Cancela para revisar tu conexión y volver a intentarlo.')) {
+          return;
+        }
         window.print();
-      }, 300);
+      });
     }
 
     // Exporta el lote actual (ID + números exactos de cada tabla) a un archivo
