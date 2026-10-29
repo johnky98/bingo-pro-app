@@ -129,8 +129,7 @@
       <div class="glass lg:col-span-6 p-6 space-y-5">
         <div>
           <label class="block text-xs font-bold uppercase tracking-wider text-purple-400 mb-2">Plantillas (1-Clic)</label>
-          <div class="grid grid-cols-3 gap-2">
-            <button onclick="aplicarPlantilla('politica')" class="btn-glass px-3 py-2 rounded-xl text-xs text-amber-300">🏛️ Política</button>
+          <div class="grid grid-cols-2 gap-2">
             <button onclick="aplicarPlantilla('corporativa')" class="btn-glass px-3 py-2 rounded-xl text-xs text-cyan-300">🏢 Corporativa</button>
             <button onclick="aplicarPlantilla('festiva')" class="btn-glass px-3 py-2 rounded-xl text-xs text-rose-300">🎉 Festiva</button>
           </div>
@@ -180,7 +179,7 @@
 
         <div>
           <label class="block text-xs font-bold uppercase tracking-wider text-purple-400 mb-1">Título de Campaña</label>
-          <input type="text" id="cfg-titulo" value="¡ACTITUD POSITIVA!" oninput="actualizarVistaPrevia()" class="glass-input w-full p-2 text-xs">
+          <input type="text" id="cfg-titulo" value="BINGO PRO" oninput="actualizarVistaPrevia()" class="glass-input w-full p-2 text-xs">
         </div>
       </div>
 
@@ -195,7 +194,7 @@
             <div id="prev-logo-container-sup" class="flex items-center justify-center hidden" style="height: 40px;">
               <img id="img-logo-sup" class="h-full object-contain">
             </div>
-            <h2 id="prev-titulo" class="font-display font-black text-xl text-center text-white drop-shadow">¡ACTITUD POSITIVA!</h2>
+            <h2 id="prev-titulo" class="font-display font-black text-xl text-center text-white drop-shadow">BINGO PRO</h2>
             <div id="prev-bingo-header" class="grid grid-cols-5 gap-1.5 w-full text-center font-display font-black text-xl py-1 rounded-lg text-white shadow" style="background-color: #F5711B;">
               <div>B</div><div>I</div><div>N</div><div>G</div><div>O</div>
             </div>
@@ -411,12 +410,12 @@
       <div class="glass px-6 py-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
         <label class="flex items-center gap-2.5 cursor-pointer">
           <input type="checkbox" id="cfg-incluir-qr" checked onchange="onCambioIncluirQR()" class="w-4 h-4 accent-brandOrange">
-          <span class="text-sm text-white font-semibold">📱 Incluir QR de registro en cada tarjeta</span>
+          <span class="text-sm text-white font-semibold">📱 Incluir QR en cada tarjeta</span>
         </label>
         <p class="text-[11px] text-slate-400 max-w-xl">
-          Cada QR abre esa misma tarjeta en <code class="text-amber-300">modulo_juego_online</code> (mismo ID, mismos números) y pide registro
-          (nombre, celular, comuna) antes de mostrarla. Requiere conexión a internet al momento de ver/imprimir (el QR se genera vía un
-          servicio externo de imágenes) y que <code class="text-amber-300">modulo_juego_online</code> esté publicado junto a este módulo.
+          Cada QR abre esa misma tarjeta (mismo ID, mismos números) en el celular del jugador, sin registro ni datos personales.
+          Requiere conexión a internet al momento de ver/imprimir (el QR se genera vía un servicio externo de imágenes) y que
+          <code class="text-amber-300">modulo_juego_online</code> esté publicado junto a este módulo.
         </p>
       </div>
 
@@ -434,7 +433,7 @@
       colorEncabezado: '#F5711B',
       colorCasilla: '#EDE7D9',
       colorTexto: '#1E0A47',
-      titulo: '¡ACTITUD POSITIVA!',
+      titulo: 'BINGO PRO',
       posicionLogo: 'superior',
       logoDataUrl: null,
       logoSizeGen: 40,
@@ -466,7 +465,7 @@
     }
 
     // ============================================================
-    // QR DE REGISTRO POR TARJETA
+    // QR POR TARJETA
     // Usa EXACTAMENTE la misma codificación que modulo_juego_online
     // (codificarCartonURL/decodificarCartonURL), para que el QR impreso en
     // la tarjeta #N abra esa misma tarjeta #N sin pasos de importación.
@@ -479,7 +478,7 @@
 
     // Calcula la URL de modulo_juego_online asumiendo la estructura de
     // carpetas hermanas descrita en la arquitectura de Bingo Pro:
-    // bingo-app/modulo_diseno/  y  bingo-app/modulo_juego_online/
+    // modulo_diseno/  y  modulo_juego_online/
     function urlBaseJuegoOnline() {
       const aqui = window.location.origin + window.location.pathname;
       return aqui.replace('/modulo_diseno/', '/modulo_juego_online/');
@@ -512,13 +511,7 @@
     }
 
     function aplicarPlantilla(tipo) {
-      if(tipo === 'politica') {
-        configDiseno.colorFondo = '#1E0A47';
-        configDiseno.colorEncabezado = '#C9982B';
-        configDiseno.colorCasilla = '#F7F3E8';
-        configDiseno.colorTexto = '#2E1065';
-        configDiseno.titulo = '¡UNIDOS POR EL CAMBIO!';
-      } else if(tipo === 'corporativa') {
+      if(tipo === 'corporativa') {
         configDiseno.colorFondo = '#0F172A';
         configDiseno.colorEncabezado = '#0284C7';
         configDiseno.colorCasilla = '#F8FAFC';
@@ -900,7 +893,7 @@
           qrImg.src = urlImagenQR(urlTarjetaQR(idNum, numsFijos), 120);
           qrImg.width = 34;
           qrImg.height = 34;
-          qrImg.alt = `QR registro tarjeta #${idNum}`;
+          qrImg.alt = `QR de la tarjeta #${idNum}`;
           qrWrap.appendChild(qrImg);
           wrap.appendChild(qrWrap);
         }
@@ -940,7 +933,7 @@
           qrImg.src = urlImagenQR(urlTarjetaQR(idNum, numsFijos), 120);
           qrImg.width = 40;
           qrImg.height = 40;
-          qrImg.alt = `QR registro tarjeta #${idNum}`;
+          qrImg.alt = `QR de la tarjeta #${idNum}`;
           qrWrap.appendChild(qrImg);
 
           const pie = clone.querySelector('.relative.z-10.mt-2');
