@@ -141,10 +141,9 @@
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-purple-400 mb-1">Formato</label>
+            <!-- 4×4 y 3×3 quedan fuera hasta implementarlas de extremo a extremo: antes imprimían cartones sin números. -->
             <select id="cfg-formato" onchange="actualizarVistaPrevia()" class="glass-input w-full p-2 text-xs">
               <option value="5x5" selected>5×5 Clásico</option>
-              <option value="4x4">4×4 Rápido</option>
-              <option value="3x3">3×3 Mini</option>
             </select>
           </div>
           <div>
