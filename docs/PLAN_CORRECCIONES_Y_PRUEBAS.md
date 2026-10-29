@@ -20,7 +20,7 @@ Regla de este documento: los criterios de aceptación describen el **comportamie
 | **D-12** reglas: **PR-1** (patrón vacío), **PR-2** (cambio de modalidad), **PR-3** (cartón que ya ganó), **PR-6** (pausa), **PR-8** (cierre) | Los criterios marcados [Cond.] y las pruebas de F2 de esas reglas | Aprobadas: PR-1 (a) en F1.5; PR-2 (b), PR-3 (a), PR-6 y PR-8 el 2026-10-29 |
 | **D-03** QR y dominio | No bloquea programar; **bloquea imprimir cartones para eventos reales** | Sin responder |
 | **D-04 / D-09** experiencia multi-teléfono y arquitectura en tiempo real | El diseño del almacén de partidas (F3) y todo F5 | Sin responder |
-| **D-06** historial y persistencia | Forma del modelo de "partida" en F3 | Sin responder |
+| **D-06** historial y persistencia | Forma del modelo de "partida" en F3 | Aprobada B el 2026-10-29: últimas 20 partidas en el navegador, exportación JSON + CSV, se abre la última usada |
 | D-05, D-07, D-08, D-10, D-11 | No bloquean F1.5 ni F2 (son de F3–F9) | Sin responder |
 
 **Mínimo para arrancar F1.5:** D-13, D-02, D-01 y PR-1. **Mínimo para arrancar F2:** además PR-2, PR-3, PR-6 y PR-8 (o aceptar que F2 solo caracterice el comportamiento actual).
@@ -212,7 +212,7 @@ Leyenda de "Hoy": **Pasa** = la comprobé ahora o en sesión previa y se cumple 
 |---|---|---|
 | RT-X1 | Contrato: un JSON exportado por Diseño lo aceptan Online y Balotera sin pérdida | Sin probar como prueba formal |
 | RT-X2 | Contrato de claves: ningún módulo escribe una clave de otro sin documentarlo (tabla de `MAPA_MODULOS.md` §7) | Sin probar |
-| RT-X3 | Flujo completo Diseño → Online → Balotera conserva todos los cartones (tras F3) | **Falla** hoy por H07 |
+| RT-X3 | Flujo completo Diseño → Online → Balotera conserva todos los cartones (tras F3) | **Pasa en F3** (prueba de integración: 30 tablas de Diseño → sala con #3–#5 → Balotera con las 30; una sala aleatoria crea otra partida sin tocarlas) |
 | RT-V1 | Capturas de los 4 módulos a 1280 y 375 px contra la línea base: sin diferencias no intencionadas | **[P]** línea base sin tomar |
 | RT-V2 | Impresión emulada comparada contra la línea base | **[P]** |
 | RT-V3 | Contraste de los textos principales ≥ criterios acordados | Parcial (previa); pares de marca conocidos bajo 4,5:1 |

@@ -467,9 +467,21 @@
             <span>📥 Exportar Tablas</span>
           </button>
 
+          <button onclick="usarLoteEnPartida()" title="Guarda estas tablas como una partida nueva: la Balotera y la Sala Online las usan sin importar archivos" class="btn-glass px-4 py-2.5 rounded-full text-sm whitespace-nowrap flex items-center justify-center gap-2 mt-2 sm:mt-0">
+            <span>🎯 Usar en una partida</span>
+          </button>
+
           <button onclick="generarEImprimir()" class="btn-liquid px-5 py-2.5 rounded-full text-sm whitespace-nowrap flex items-center justify-center gap-2 mt-2 sm:mt-0">
             <span>🖨️ Imprimir / Guardar PDF</span>
           </button>
+        </div>
+      </div>
+
+      <div id="aviso-partida-creada" class="hidden glass-soft px-6 py-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
+        <p id="texto-partida-creada" class="text-sm text-green-300 font-semibold"></p>
+        <div class="flex flex-wrap gap-2">
+          <a href="../modulo_balotera/index.html" class="btn-liquid px-4 py-2 rounded-full text-xs">🎱 Abrir la Balotera</a>
+          <a href="../modulo_juego_online/index.html" class="btn-glass px-4 py-2 rounded-full text-xs">📱 Abrir la Sala Online</a>
         </div>
       </div>
 
@@ -480,8 +492,8 @@
         </label>
         <p class="text-[11px] text-slate-400 max-w-xl">
           Cada QR abre esa misma tarjeta (mismo ID, mismos números) en el celular del jugador, sin registro ni datos personales.
-          Requiere conexión a internet al momento de ver/imprimir (el QR se genera vía un servicio externo de imágenes) y que
-          <code class="text-amber-300">modulo_juego_online</code> esté publicado junto a este módulo.
+          El QR se genera en este navegador (la tarjeta no se envía a ningún servicio externo); para que el celular lo abra,
+          <code class="text-amber-300">modulo_juego_online</code> debe estar publicado junto a este módulo.
         </p>
       </div>
 
@@ -491,6 +503,9 @@
   </main>
 
   <script src="../nucleo/motor-bingo.js"></script>
+  <script src="../nucleo/partidas.js"></script>
+  <script src="../assets/vendor/qrcode-generator-1.4.4/qrcode.js"></script>
+  <script src="../nucleo/qr-local.js"></script>
   <script>
     let modoOrigen = 'generador';
     let ultimoLoteTablas = []; // [{ id, columnas }] del último lote renderizado, usado para exportar a JSON
@@ -565,8 +580,11 @@
       return `${urlBaseJuegoOnline()}?c=${codigo}`;
     }
 
-    function urlImagenQR(datosURL, tamano) {
-      return `https://api.qrserver.com/v1/create-qr-code/?size=${tamano}x${tamano}&margin=0&data=${encodeURIComponent(datosURL)}`;
+    // El QR se genera en el navegador (nucleo/qr-local.js): la URL del cartón no sale a ningún servicio externo.
+    // Margen de 1 módulo: el recuadro blanco de la tarjeta completa el borde. Nivel L (el del servicio
+    // anterior): en una tarjeta el QR mide ~1 cm y lo que más ayuda a leerlo es que sea menos denso.
+    function urlImagenQR(datosURL) {
+      return BingoQR.urlImagen(datosURL, 1, 'L');
     }
 
     function switchTab(tabId) {
@@ -1008,7 +1026,7 @@
           qrWrap.style.width = "36px";
           qrWrap.style.height = "36px";
           const qrImg = document.createElement('img');
-          qrImg.src = urlImagenQR(urlTarjetaQR(idNum, numsFijos), 120);
+          qrImg.src = urlImagenQR(urlTarjetaQR(idNum, numsFijos));
           qrImg.width = 34;
           qrImg.height = 34;
           qrImg.alt = `QR de la tarjeta #${idNum}`;
@@ -1048,7 +1066,7 @@
           qrWrap.style.width = "42px";
           qrWrap.style.height = "42px";
           const qrImg = document.createElement('img');
-          qrImg.src = urlImagenQR(urlTarjetaQR(idNum, numsFijos), 120);
+          qrImg.src = urlImagenQR(urlTarjetaQR(idNum, numsFijos));
           qrImg.width = 40;
           qrImg.height = 40;
           qrImg.alt = `QR de la tarjeta #${idNum}`;
@@ -1093,6 +1111,9 @@
     // El lote no repite cartones dentro de sí mismo.
     function generarNuevoLote(cantidadTotal) {
       ultimoLoteTablas = BingoMotor.generarCartonesUnicos(cantidadTotal).map((columnas, i) => ({ id: i + 1, columnas }));
+      // La partida creada guardó el lote anterior: con números nuevos ya no corresponde a lo que se ve.
+      loteGuardadoEnPartida = false;
+      document.getElementById('aviso-partida-creada').classList.add('hidden');
     }
 
     // Dibuja en pantalla el lote que ya está en ultimoLoteTablas, SIN generar
@@ -1140,8 +1161,8 @@
     }
 
     // Espera a que carguen (o fallen) las imágenes de las tarjetas, con un tope de tiempo, y devuelve
-    // cuántas no están listas. Los QR vienen de un servicio externo: si tarda o no responde, las
-    // tarjetas saldrían impresas sin QR sin que nadie lo note.
+    // cuántas no están listas: si el logo, la plantilla o un QR no han cargado, las tarjetas
+    // saldrían impresas sin ellos sin que nadie lo note.
     function esperarImagenes(contenedor, maxMs) {
       // Cada cartón clonado trae <img> de logo y marca de agua sin src cuando no se usan: no cuentan.
       const imgs = [...contenedor.querySelectorAll('img')].filter(img => img.getAttribute('src'));
@@ -1155,6 +1176,7 @@
 
     let esperandoImpresion = false;
     let loteImpresoSinExportar = false; // se imprimió algo desde la última exportación a JSON
+    let loteGuardadoEnPartida = false;  // el lote en pantalla ya está guardado como partida (no hace falta el JSON)
 
     function generarEImprimir() {
       if (esperandoImpresion) return;
@@ -1164,11 +1186,11 @@
       Promise.all([esperarImagenes(document.getElementById('area-impresion'), 15000), document.fonts.ready]).then(([{ total, sinCargar }]) => {
         esperandoImpresion = false;
         if (sinCargar > 0 && !confirm(
-          `${sinCargar} de ${total} imágenes de las tarjetas no han cargado (por ejemplo, los QR del servicio externo). ` +
+          `${sinCargar} de ${total} imágenes de las tarjetas no han cargado. ` +
           'Si imprimes ahora, esas tarjetas saldrán sin ellas.\n\n¿Imprimir de todos modos? Cancela para revisar tu conexión y volver a intentarlo.')) {
           return;
         }
-        loteImpresoSinExportar = true;
+        loteImpresoSinExportar = !loteGuardadoEnPartida;
         window.print();
       });
     }
@@ -1197,6 +1219,32 @@
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
       loteImpresoSinExportar = false;
+    }
+
+    // Guarda el lote en pantalla como una partida nueva (F3): la Balotera y la Sala Online
+    // la abren directamente, sin exportar ni importar archivos.
+    function usarLoteEnPartida() {
+      renderizarLoteImpresion(); // el mismo lote que se ve, sin regenerar
+      if (ultimoLoteTablas.length === 0) {
+        alert('No hay tablas generadas para guardar.');
+        return;
+      }
+      const almacen = BingoPartidas.almacenDelNavegador();
+      if (!BingoPartidas.confirmarEspacioParaNueva(almacen)) return;
+
+      const tablas = {};
+      ultimoLoteTablas.forEach(t => { tablas[String(t.id)] = t.columnas; });
+      const n = ultimoLoteTablas.length;
+      const titulo = modoOrigen === 'subida' ? 'Plantilla propia' : configDiseno.titulo;
+      const partida = almacen.crear({ nombre: `${titulo} · ${BingoPartidas.fechaLegible(Date.now())}`, tablas, origen: 'diseno' });
+      if (!partida) {
+        alert('El navegador no tiene espacio para guardar la partida. Abre la Balotera, exporta y borra partidas antiguas, y vuelve a intentarlo. Mientras tanto puedes usar "📥 Exportar Tablas".');
+        return;
+      }
+      loteGuardadoEnPartida = true; // las tablas ya quedaron guardadas en la partida
+      loteImpresoSinExportar = false;
+      document.getElementById('texto-partida-creada').textContent = `✅ Partida «${partida.nombre}» creada y abierta con estas ${n} tablas.`;
+      document.getElementById('aviso-partida-creada').classList.remove('hidden');
     }
 
     // El lote solo vive en memoria: si se imprimió y no se exportó, al cerrar o recargar la página

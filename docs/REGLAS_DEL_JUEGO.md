@@ -138,7 +138,7 @@ Cada una indica opciones, mi recomendación y por qué. Las que cierran defectos
 | PR-3 | **Un cartón que ya ganó en la ronda** | (a) Una sola vez por ronda y por modalidad (b) Una sola vez por ronda (actual) (c) Cada vez que cumpla una modalidad nueva | (a) | Permite el "bingo por etapas" sin repetir avisos; requiere incluir la modalidad en la clave | **Aprobada (a)** el 2026-10-29; se implementa en F2 |
 | PR-4 | **Varios ganadores simultáneos** | (a) Todos ganan (actual) (b) Desempate por regla del organizador (c) Reparto | (a) como regla del sistema; el reparto del premio es del organizador, fuera de la app | La app no gestiona premios | **Sí** |
 | PR-5 | **Qué pasa tras un ganador** | (a) La ronda sigue (actual) (b) Pausa automática hasta confirmar que el premio se otorgó | (b) opcional con interruptor | Evita seguir sacando balotas por error | **Sí** |
-| PR-6 | **Pausa** | Añadir "Pausar" que congele el botón de sacar balota | Sí, F3 | Hoy no existe y es habitual en eventos | **Aprobada** el 2026-10-29: estado en el motor en F2, botón en F3 |
+| PR-6 | **Pausa** | Añadir "Pausar" que congele el botón de sacar balota | Sí, F3 | Hoy no existe y es habitual en eventos | **Aprobada** el 2026-10-29: estado en el motor en F2; botón "⏸️ Pausar / ▶️ Reanudar" en la Balotera en F3 (se guarda con la partida) |
 | PR-7 | **Reiniciar** | Separar (1) reiniciar ronda, (2) reiniciar partida, (3) partida nueva | Sí, F6; con confirmaciones diferenciadas | Hoy un solo botón mezcla efectos | **Sí** |
 | PR-8 | **Cierre de partida** | Acción "Finalizar partida" que bloquea el juego, genera resumen exportable y archiva el historial | Sí, F6 | Hoy no existe | **Aprobada** el 2026-10-29: estado en el motor en F2, resumen y pantalla en F6 |
 | PR-9 | **Validación de cartones** | Validar estructura, rangos, unicidad y tamaño máximo al importar y al abrir `?c=` | Sí, F2 | Cierra R-03, R-11 | Hecha en F1.5 (CM-06); en F2 pasa al motor, una sola copia |
@@ -180,7 +180,10 @@ preparada --sacar_balota--> en_juego --pausar--> pausada --reanudar--> en_juego
 nueva_ronda / reiniciar --> preparada        finalizar --> finalizada (no admite nada más)
 ```
 
-Con la partida en pausa no se puede sacar balota (PR-6). El botón de pausa llega en F3 y el cierre con resumen en F6 (PR-8); la pantalla todavía no usa estos estados.
+Con la partida en pausa no se puede sacar balota (PR-6).
+- **Desde F3** la Balotera usa estos estados. "⏸️ Pausar" aparece con la ronda en juego, la pausa se conserva al recargar, y "Siguiente ronda" o "Reiniciar" vuelven a "preparada".
+- El cierre con resumen llega en F6 (PR-8).
+- Cada partida guarda su estado por separado; el modelo está en `docs/MODELO_DE_DATOS.md`.
 
 ## Casos límite cubiertos por las pruebas
 

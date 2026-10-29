@@ -82,21 +82,22 @@
         tú avanzas al siguiente, y así hasta terminar la ronda.
       </p>
 
-      <!-- IMPORTAR TABLAS DEL MÓDULO DE DISEÑO: para que el cartón que abre el QR de la
+      <!-- TABLAS DE UNA PARTIDA GUARDADA: para que el cartón que abre el QR de la
            tarjeta física #N sea exactamente el mismo #N que se imprimió. -->
       <div class="mb-5 pb-5 border-b border-white/10">
-        <label class="uppercase tracking-[0.2em] text-[10px] text-purple-400 block mb-1">Tablas impresas (opcional)</label>
+        <label for="select-partida-online" class="uppercase tracking-[0.2em] text-[10px] text-purple-400 block mb-1">Tablas impresas (opcional)</label>
         <p class="text-xs text-purple-300 mb-3">
-          Importa el JSON exportado desde el módulo de Diseño (botón "📥 Exportar Tablas") para que la tabla que
-          abre el QR de la tarjeta física #N coincida exactamente con la tabla #N que ya se imprimió y repartió.
+          Elige la partida con las tablas que ya imprimiste (en Diseño: "🎯 Usar en una partida") para que la tabla que
+          abre el QR de la tarjeta física #N coincida exactamente con la tabla #N repartida. También puedes importar el JSON exportado desde Diseño.
         </p>
         <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <select id="select-partida-online" class="glass-input px-3 py-2.5 text-sm font-semibold max-w-full sm:max-w-sm"></select>
           <label class="btn-glass px-4 py-2.5 rounded-xl text-sm cursor-pointer">
             📂 Importar Tablas (JSON)
             <input type="file" id="input-importar-tablas-diseno" accept="application/json" class="hidden">
           </label>
-          <span id="info-tablas-importadas-diseno" class="text-xs text-purple-300">Aún no has importado tablas del módulo de Diseño.</span>
         </div>
+        <p id="info-tablas-importadas-diseno" class="text-xs text-purple-300 mt-2">Sin tablas impresas: se generarán tablas aleatorias nuevas.</p>
       </div>
 
       <div class="flex flex-col md:flex-row md:items-end gap-4 md:gap-6 mb-2">
@@ -192,9 +193,12 @@
   </div>
 
   <script src="../nucleo/motor-bingo.js"></script>
+  <script src="../nucleo/partidas.js"></script>
+  <script src="../assets/vendor/qrcode-generator-1.4.4/qrcode.js"></script>
+  <script src="../nucleo/qr-local.js"></script>
   <script>
     // Reglas del juego (generar y validar cartones): nucleo/motor-bingo.js, compartido con Diseño y Balotera.
-    const { MAX_TABLAS_POR_ARCHIVO, generarCartonesUnicos, motivoCartonInvalido, validarLoteTablas, detalleRechazos } = BingoMotor;
+    const { generarCartonesUnicos, motivoCartonInvalido, detalleRechazos } = BingoMotor;
 
     // ============================================================
     // Codificación de la tabla en la URL (base64 URL-safe, sin servidor)
@@ -218,42 +222,30 @@
       return `${base}?c=${codigo}`;
     }
 
-    // Genera la imagen del QR usando un servicio público por URL (sin
-    // dependencia de ninguna librería JS externa que pueda fallar al cargar).
-    function urlImagenQR(datos, tamano) {
-      return `https://api.qrserver.com/v1/create-qr-code/?size=${tamano}x${tamano}&data=${encodeURIComponent(datos)}`;
+    // El QR se genera en este navegador (nucleo/qr-local.js): la URL del cartón no sale a ningún servicio externo.
+    function urlImagenQR(datos) {
+      return BingoQR.urlImagen(datos, 2);
     }
 
     // ============================================================
-    // IMPORTAR TABLAS DEL MÓDULO DE DISEÑO (mismo formato/clave que usa
-    // la Balotera: [{id, columnas}] -> dict { "id": columnas }). Al importar
-    // aquí, el cartón que revela el QR de la tarjeta física #N es exactamente
-    // el mismo #N que ya se imprimió, en vez de un lote aleatorio nuevo.
+    // TABLAS DE UNA PARTIDA GUARDADA (F3): la sala puede usar las tablas impresas de una
+    // partida (creada en Diseño o importada desde su JSON). Así el cartón que revela el QR
+    // de la tarjeta física #N es exactamente el mismo #N que ya se imprimió. Cada partida
+    // guarda sus tablas por separado: la sala ya no reemplaza las tablas de otra (H07).
     // ============================================================
-    const CLAVE_TABLAS_BALOTERA = 'bingo_balotera_tablas_v1';
-    let tablasDescartadasAlCargar = 0;
-    let tablasImportadasDiseno = cargarTablasImportadasDeLocalStorage();
+    let almacen = null;                 // se abre solo en la vista del presentador (no en el celular del jugador)
+    let partidaOrigen = null;           // partida cuyas tablas usa la sala, o null para tablas aleatorias
+    let tablasImportadasDiseno = {};    // tablas de esa partida
 
-    // Las tablas guardadas pueden venir de versiones anteriores sin validación: se cargan solo las válidas.
-    function cargarTablasImportadasDeLocalStorage() {
-      let guardado = null;
-      try {
-        guardado = JSON.parse(localStorage.getItem(CLAVE_TABLAS_BALOTERA));
-      } catch (e) { /* sin localStorage disponible o contenido dañado */ }
-      if (!guardado || typeof guardado !== 'object' || Array.isArray(guardado)) return {};
-      const { tablas, rechazadas } = validarLoteTablas(Object.entries(guardado).map(([id, columnas]) => ({ id, columnas })));
-      tablasDescartadasAlCargar = rechazadas.length;
-      return tablas;
-    }
-
-    function guardarTablasImportadasEnLocalStorage() {
-      try {
-        localStorage.setItem(CLAVE_TABLAS_BALOTERA, JSON.stringify(tablasImportadasDiseno));
-      } catch (e) { /* continúa funcionando solo en memoria durante la sesión */ }
+    function usarPartida(partida) {
+      partidaOrigen = partida && Object.keys(partida.tablas).length > 0 ? partida : null;
+      tablasImportadasDiseno = partidaOrigen ? partidaOrigen.tablas : {};
+      actualizarInfoTablasImportadas();
     }
 
     function importarTablasDesdeDiseno(event) {
       const file = event.target.files[0];
+      event.target.value = ''; // permite volver a elegir el mismo archivo
       if (!file) return;
 
       const reader = new FileReader();
@@ -266,29 +258,40 @@
           alert('El archivo no tiene el formato esperado. Debe ser el JSON exportado desde el botón "📥 Exportar Tablas" del módulo de Diseño.');
           return;
         }
-        if (data.length > MAX_TABLAS_POR_ARCHIVO) {
-          alert(`El archivo trae ${data.length} tablas y el máximo es ${MAX_TABLAS_POR_ARCHIVO}. No se cargó nada.`);
+        if (!BingoPartidas.confirmarEspacioParaNueva(almacen)) return;
+
+        const resultado = almacen.importar(data, `Tablas de ${file.name.replace(/\.json$/i, '')}`);
+        if (resultado.error) {
+          alert(resultado.error === 'sin-espacio'
+            ? 'El navegador no tiene espacio para guardar otra partida. Abre la Balotera, exporta y borra partidas antiguas, y vuelve a intentarlo.'
+            : resultado.error);
           return;
         }
-
-        const { tablas, rechazadas } = validarLoteTablas(data);
-        const validas = Object.keys(tablas).length;
-        if (validas === 0) {
-          alert('Ninguna tabla del archivo es válida, así que se conservan las que ya estaban cargadas.' + detalleRechazos(rechazadas));
-          return;
-        }
-
-        tablasImportadasDiseno = tablas;
-        tablasDescartadasAlCargar = 0;
-        guardarTablasImportadasEnLocalStorage();
-        actualizarInfoTablasImportadas();
-        if (rechazadas.length > 0) {
-          const descarte = rechazadas.length === 1 ? 'se descartó 1 que no es válida' : `se descartaron ${rechazadas.length} que no son válidas`;
+        usarPartida(resultado.partida);
+        if (resultado.rechazadas > 0) {
+          const validas = Object.keys(resultado.partida.tablas).length;
+          const descarte = resultado.rechazadas === 1 ? 'se descartó 1 que no es válida' : `se descartaron ${resultado.rechazadas} que no son válidas`;
           const carga = validas === 1 ? 'Se cargó 1 tabla' : `Se cargaron ${validas} tablas`;
-          alert(`${carga} y ${descarte}:` + detalleRechazos(rechazadas));
+          alert(`${carga} y ${descarte}:` + detalleRechazos(resultado.detalle));
         }
       };
       reader.readAsText(file);
+    }
+
+    function actualizarSelectorPartidas() {
+      const select = document.getElementById('select-partida-online');
+      select.replaceChildren();
+      const aleatorias = document.createElement('option');
+      aleatorias.value = '';
+      aleatorias.textContent = '— Tablas aleatorias nuevas —';
+      select.appendChild(aleatorias);
+      almacen.listar().filter(r => r.numTablas > 0).forEach(r => {
+        const op = document.createElement('option');
+        op.value = r.id;
+        op.textContent = `${r.nombre} (${r.numTablas} tabla${r.numTablas === 1 ? '' : 's'})`;
+        select.appendChild(op);
+      });
+      select.value = partidaOrigen ? partidaOrigen.id : '';
     }
 
     function actualizarInfoTablasImportadas() {
@@ -297,16 +300,12 @@
       const info = document.getElementById('info-tablas-importadas-diseno');
       const bloqueAleatorio = document.getElementById('bloque-modo-aleatorio');
       const bloqueImportado = document.getElementById('bloque-modo-importado');
-      const descartadas = tablasDescartadasAlCargar > 0
-        ? (tablasDescartadasAlCargar === 1
-          ? ' Se ignoró 1 tabla guardada que no era válida.'
-          : ` Se ignoraron ${tablasDescartadasAlCargar} tablas guardadas que no eran válidas.`)
-        : '';
+      actualizarSelectorPartidas();
 
       if (total > 0) {
         const minId = Math.min(...ids);
         const maxId = Math.max(...ids);
-        info.textContent = `✅ ${total} tabla${total === 1 ? '' : 's'} importada${total === 1 ? '' : 's'} (rango #${minId} a #${maxId}).` + descartadas;
+        info.textContent = `✅ ${total} tabla${total === 1 ? '' : 's'} de «${partidaOrigen.nombre}» (rango #${minId} a #${maxId}).`;
         bloqueAleatorio.classList.add('hidden');
         bloqueImportado.classList.remove('hidden');
         document.getElementById('input-rango-desde').value = minId;
@@ -316,7 +315,7 @@
         document.getElementById('input-rango-hasta').min = minId;
         document.getElementById('input-rango-hasta').max = maxId;
       } else {
-        info.textContent = 'Aún no has importado tablas del módulo de Diseño.' + descartadas;
+        info.textContent = 'Sin tablas impresas: se generarán tablas aleatorias nuevas.';
         bloqueAleatorio.classList.remove('hidden');
         bloqueImportado.classList.add('hidden');
       }
@@ -386,7 +385,7 @@
       document.getElementById('progreso-sala').textContent = `${indiceActual + 1} de ${total}`;
 
       const img = document.getElementById('img-qr-actual');
-      img.src = urlImagenQR(jugador.url, 300);
+      img.src = urlImagenQR(jugador.url);
       img.classList.remove('anim-nueva');
       void img.offsetWidth;
       img.classList.add('anim-nueva');
@@ -416,48 +415,21 @@
       }
     }
 
-    // Convierte el lote actual al mismo formato que usa el módulo de
-    // Balotera para sus tablas importadas, y lo escribe en el mismo
-    // localStorage (comparten origen una vez alojados en el mismo hosting).
-    // Así, al abrir la Balotera, las tablas ya aparecen listas para
-    // verificar sin necesidad de exportar/importar el archivo a mano.
-    function sincronizarTablasConBalotera() {
-      const dict = {};
-      jugadoresSala.forEach(j => { dict[String(j.numero)] = j.columnas; });
-      try {
-        localStorage.setItem(CLAVE_TABLAS_BALOTERA, JSON.stringify(dict));
-        return true;
-      } catch (e) {
-        return false; // sin localStorage disponible: seguirá funcionando el export manual
-      }
-    }
-
-    // Tablas guardadas para la Balotera que no están (idénticas) en la sala y se perderían al sincronizar.
-    function contarTablasQueSeReemplazan() {
-      let guardadas = {};
-      try {
-        guardadas = JSON.parse(localStorage.getItem(CLAVE_TABLAS_BALOTERA)) || {};
-      } catch (e) { /* sin localStorage disponible o contenido dañado */ }
-      if (typeof guardadas !== 'object' || Array.isArray(guardadas)) return 0;
-      const sala = {};
-      jugadoresSala.forEach(j => { sala[String(j.numero)] = JSON.stringify(j.columnas); });
-      return Object.keys(guardadas).filter(id => sala[id] !== JSON.stringify(guardadas[id])).length;
-    }
-
+    // Al terminar de repartir los QR la sala queda guardada como partida y se abre en la Balotera:
+    // - con tablas impresas, es la misma partida de donde salieron (no se copia ni se reemplaza nada);
+    // - con tablas aleatorias, se crea una partida nueva con las tablas de esta sala.
     function finalizarEIrABalotera() {
-      // Mitigación de H07: sincronizar reemplaza todas las tablas guardadas. La solución completa
-      // (partidas separadas) llega con la integración de módulos.
-      const seReemplazan = contarTablasQueSeReemplazan();
-      if (seReemplazan > 0 && !confirm(
-        `La Balotera tiene ${seReemplazan} tabla${seReemplazan === 1 ? '' : 's'} guardada${seReemplazan === 1 ? '' : 's'} que no ${seReemplazan === 1 ? 'está' : 'están'} en esta sala. ` +
-        `Al continuar se reemplazarán por las ${jugadoresSala.length} tablas de la sala y ${seReemplazan === 1 ? 'esa se perderá' : 'esas se perderán'}.\n\n` +
-        'Si las necesitas, cancela y asegúrate de tener su archivo JSON para volver a importarlas después. ¿Continuar?')) {
-        return;
-      }
-      const sincronizado = sincronizarTablasConBalotera();
-      if (!sincronizado) {
-        alert('No se pudo guardar automáticamente (localStorage no disponible en este navegador). Usa "Exportar Tablas" y súbelo manualmente en la Balotera.');
-        return;
+      if (partidaOrigen) {
+        almacen.activar(partidaOrigen.id);
+      } else {
+        if (!BingoPartidas.confirmarEspacioParaNueva(almacen)) return;
+        const tablas = {};
+        jugadoresSala.forEach(j => { tablas[String(j.numero)] = j.columnas; });
+        const partida = almacen.crear({ nombre: `Sala online · ${BingoPartidas.fechaLegible(Date.now())}`, tablas, origen: 'online' });
+        if (!partida) {
+          alert('El navegador no tiene espacio para guardar la partida. Usa "Exportar Tablas", y en la Balotera exporta y borra partidas antiguas antes de importarla.');
+          return;
+        }
       }
       window.location.href = '../modulo_balotera/index.html';
     }
@@ -593,7 +565,9 @@
       mostrarVistaJugador(codigoCarton);
     } else {
       avisarSiEsArchivoLocal();
-      actualizarInfoTablasImportadas();
+      almacen = BingoPartidas.almacenDelNavegador();
+      usarPartida(almacen.activa()); // la última partida usada, si tiene tablas
+      document.getElementById('select-partida-online').addEventListener('change', e => usarPartida(e.target.value ? almacen.obtener(e.target.value) : null));
       document.getElementById('btn-generar-sala').addEventListener('click', generarSala);
       document.getElementById('btn-jugador-siguiente').addEventListener('click', irAJugadorSiguiente);
       document.getElementById('btn-jugador-anterior').addEventListener('click', irAJugadorAnterior);
@@ -601,10 +575,7 @@
       document.getElementById('btn-reiniciar-sala').addEventListener('click', reiniciarSala);
       document.getElementById('btn-exportar-tablas').addEventListener('click', exportarTablasSalaJSON);
       document.getElementById('input-importar-tablas-diseno').addEventListener('change', importarTablasDesdeDiseno);
-      document.getElementById('btn-usar-modo-aleatorio').addEventListener('click', () => {
-        document.getElementById('bloque-modo-importado').classList.add('hidden');
-        document.getElementById('bloque-modo-aleatorio').classList.remove('hidden');
-      });
+      document.getElementById('btn-usar-modo-aleatorio').addEventListener('click', () => usarPartida(null));
     }
   </script>
 </body>
