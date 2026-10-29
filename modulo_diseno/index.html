@@ -252,6 +252,16 @@
             <label for="custom-show-title" class="text-xs text-slate-200 cursor-pointer font-medium">Mostrar Título Superior</label>
           </div>
           <input type="text" id="custom-titulo-txt" value="MI GRAN BINGO" oninput="actualizarEstilosCustom()" placeholder="Escribe tu título..." class="glass-input w-full p-2 text-xs">
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <span class="text-[10px] text-slate-300 block mb-1">Posición Título: <span id="val-titulo-pos-y">8%</span></span>
+              <input type="range" id="custom-titulo-pos-y" min="0" max="60" value="8" oninput="actualizarEstilosCustom()" class="w-full">
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-300 block mb-1">Tamaño Título: <span id="val-titulo-size">18px</span></span>
+              <input type="range" id="custom-titulo-size" min="10" max="40" value="18" oninput="actualizarEstilosCustom()" class="w-full">
+            </div>
+          </div>
 
           <div class="glass-soft flex items-center gap-2 p-2">
             <input type="checkbox" id="custom-show-bingo-header" onchange="actualizarEstilosCustom()" class="w-4 h-4 accent-brandOrange rounded cursor-pointer">
@@ -265,6 +275,20 @@
             <div>
               <span class="text-[10px] text-slate-300 block mb-1">Color Texto BINGO</span>
               <input type="color" id="custom-color-bingo-text" value="#ffffff" onchange="actualizarEstilosCustom()" class="w-full h-7 rounded cursor-pointer bg-transparent">
+            </div>
+          </div>
+          <div>
+            <span class="text-[10px] text-slate-300 block mb-1">Posición BINGO (Bajar/Subir): <span id="val-bingo-pos-y">20%</span></span>
+            <input type="range" id="custom-bingo-pos-y" min="0" max="80" value="20" oninput="actualizarEstilosCustom()" class="w-full">
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <span class="text-[10px] text-slate-300 block mb-1">Ancho BINGO: <span id="val-bingo-width">74%</span></span>
+              <input type="range" id="custom-bingo-width" min="30" max="98" value="74" oninput="actualizarEstilosCustom()" class="w-full">
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-300 block mb-1">Tamaño Letras BINGO: <span id="val-bingo-size">18px</span></span>
+              <input type="range" id="custom-bingo-size" min="10" max="36" value="18" oninput="actualizarEstilosCustom()" class="w-full">
             </div>
           </div>
         </div>
@@ -346,11 +370,11 @@
             <img id="img-custom-logo-sup" class="object-contain">
           </div>
 
-          <div id="custom-titulo-wrap" class="absolute top-12 left-0 w-full text-center z-20 hidden px-4">
+          <div id="custom-titulo-wrap" class="absolute left-0 w-full text-center z-20 hidden px-4" style="top: 8%;">
             <h2 id="custom-titulo-text" class="font-display font-black text-lg text-white drop-shadow-md"></h2>
           </div>
 
-          <div id="custom-bingo-header-wrap" class="absolute left-1/2 -translate-x-1/2 z-20 hidden px-6" style="width: 84%; top: 20%;">
+          <div id="custom-bingo-header-wrap" class="absolute left-1/2 -translate-x-1/2 z-20 hidden" style="width: 74%; top: 20%;">
             <div id="custom-bingo-header-box" class="grid grid-cols-5 gap-1.5 w-full text-center font-display font-black text-lg py-1 rounded-lg shadow">
               <div>B</div><div>I</div><div>N</div><div>G</div><div>O</div>
             </div>
@@ -443,9 +467,14 @@
       customLogoSize: 40,
       customShowTitle: false,
       customTituloTxt: 'MI GRAN BINGO',
+      customTituloPosY: 8,
+      customTituloSize: 18,
       customShowBingoHeader: false,
       customColorBingoBg: '#F5711B',
       customColorBingoText: '#ffffff',
+      customBingoPosY: 20,
+      customBingoWidth: 74,
+      customBingoSize: 18,
       customShowBox: true,
       customColorNum: '#1E0A47',
       customColorBox: '#ffffff',
@@ -592,6 +621,16 @@
       configDiseno.customShowBingoHeader = document.getElementById('custom-show-bingo-header').checked;
       configDiseno.customColorBingoBg = document.getElementById('custom-color-bingo-bg').value;
       configDiseno.customColorBingoText = document.getElementById('custom-color-bingo-text').value;
+      configDiseno.customTituloPosY = document.getElementById('custom-titulo-pos-y').value;
+      configDiseno.customTituloSize = document.getElementById('custom-titulo-size').value;
+      configDiseno.customBingoPosY = document.getElementById('custom-bingo-pos-y').value;
+      configDiseno.customBingoWidth = document.getElementById('custom-bingo-width').value;
+      configDiseno.customBingoSize = document.getElementById('custom-bingo-size').value;
+      document.getElementById('val-titulo-pos-y').innerText = `${configDiseno.customTituloPosY}%`;
+      document.getElementById('val-titulo-size').innerText = `${configDiseno.customTituloSize}px`;
+      document.getElementById('val-bingo-pos-y').innerText = `${configDiseno.customBingoPosY}%`;
+      document.getElementById('val-bingo-width').innerText = `${configDiseno.customBingoWidth}%`;
+      document.getElementById('val-bingo-size').innerText = `${configDiseno.customBingoSize}px`;
 
       configDiseno.customShowBox = document.getElementById('custom-show-box').checked;
       configDiseno.customColorNum = document.getElementById('custom-color-num').value;
@@ -637,7 +676,11 @@
 
       const wrapTitulo = document.getElementById('custom-titulo-wrap');
       if(configDiseno.customShowTitle) {
-        document.getElementById('custom-titulo-text').innerText = configDiseno.customTituloTxt;
+        const titulo = document.getElementById('custom-titulo-text');
+        titulo.innerText = configDiseno.customTituloTxt;
+        titulo.style.fontSize = `${configDiseno.customTituloSize}px`;
+        titulo.style.lineHeight = '1.15';
+        wrapTitulo.style.top = `${configDiseno.customTituloPosY}%`;
         wrapTitulo.classList.remove('hidden');
       } else {
         wrapTitulo.classList.add('hidden');
@@ -648,6 +691,10 @@
         const box = document.getElementById('custom-bingo-header-box');
         box.style.backgroundColor = configDiseno.customColorBingoBg;
         box.style.color = configDiseno.customColorBingoText;
+        box.style.fontSize = `${configDiseno.customBingoSize}px`;
+        box.style.lineHeight = '1.2';
+        wrapBingo.style.top = `${configDiseno.customBingoPosY}%`;
+        wrapBingo.style.width = `${configDiseno.customBingoWidth}%`;
         wrapBingo.classList.remove('hidden');
       } else {
         wrapBingo.classList.add('hidden');
@@ -816,9 +863,13 @@
 
         if(configDiseno.customShowTitle) {
           const titleWrap = document.createElement('div');
-          titleWrap.className = "absolute top-10 left-0 w-full text-center z-20 px-2";
+          // Posiciones en % del alto del cartón, igual que en la vista previa; letras al 80 % como los números.
+          titleWrap.className = "absolute left-0 w-full text-center z-20 px-2";
+          titleWrap.style.top = `${configDiseno.customTituloPosY}%`;
           const h2 = document.createElement('h2');
           h2.className = "font-display font-black text-sm text-white drop-shadow";
+          h2.style.fontSize = `${Math.round(configDiseno.customTituloSize * 0.8)}px`;
+          h2.style.lineHeight = '1.15';
           h2.innerText = configDiseno.customTituloTxt;
           titleWrap.appendChild(h2);
           wrap.appendChild(titleWrap);
@@ -826,14 +877,16 @@
 
         if(configDiseno.customShowBingoHeader) {
           const bingoWrap = document.createElement('div');
-          bingoWrap.className = "absolute left-1/2 -translate-x-1/2 z-20 px-4";
-          bingoWrap.style.width = `${configDiseno.customWidth}%`;
-          bingoWrap.style.top = `18%`;
-          
+          bingoWrap.className = "absolute left-1/2 -translate-x-1/2 z-20";
+          bingoWrap.style.width = `${configDiseno.customBingoWidth}%`;
+          bingoWrap.style.top = `${configDiseno.customBingoPosY}%`;
+
           const box = document.createElement('div');
           box.className = "grid grid-cols-5 gap-1 w-full text-center font-display font-black text-xs py-0.5 rounded shadow";
           box.style.backgroundColor = configDiseno.customColorBingoBg;
           box.style.color = configDiseno.customColorBingoText;
+          box.style.fontSize = `${Math.round(configDiseno.customBingoSize * 0.8)}px`;
+          box.style.lineHeight = '1.2';
           box.innerHTML = '<div>B</div><div>I</div><div>N</div><div>G</div><div>O</div>';
           bingoWrap.appendChild(box);
           wrap.appendChild(bingoWrap);
