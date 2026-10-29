@@ -26,7 +26,7 @@
     }
   </script>
   <style>
-    /* Tipografías del título de "Subir Plantilla": una por categoría, alojadas en el propio sitio
+    /* Tipografías del título (Generador y Subir Plantilla): una por categoría, alojadas en el propio sitio
        (licencia OFL en assets/fuentes) para que pantalla e impresión se vean igual sin servicios externos. */
     @font-face { font-family: 'Playfair Display'; font-weight: 800; font-display: swap; src: url('../assets/fuentes/playfair-display-800.woff2') format('woff2'); }
     @font-face { font-family: 'Montserrat'; font-weight: 800; font-display: swap; src: url('../assets/fuentes/montserrat-800.woff2') format('woff2'); }
@@ -188,6 +188,23 @@
         <div>
           <label class="block text-xs font-bold uppercase tracking-wider text-purple-400 mb-1">Título de Campaña</label>
           <input type="text" id="cfg-titulo" value="BINGO PRO" oninput="actualizarVistaPrevia()" class="glass-input w-full p-2 text-xs">
+          <div class="grid grid-cols-2 gap-2 mt-2">
+            <div>
+              <span class="text-[10px] text-slate-400 block">Color Título</span>
+              <input type="color" id="cfg-titulo-color" value="#ffffff" onchange="actualizarVistaPrevia()" class="w-full h-8 rounded cursor-pointer">
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-400 block">Tipografía Título</span>
+              <select id="cfg-titulo-fuente" onchange="actualizarVistaPrevia()" class="glass-input w-full p-1.5 text-xs">
+                <option value="predeterminada" selected>Predeterminada (Arial Black)</option>
+                <option value="serif">Serif · Playfair Display</option>
+                <option value="sans">Sans Serif · Montserrat</option>
+                <option value="slab">Slab Serif · Arvo</option>
+                <option value="script">Script · Pacifico</option>
+                <option value="decorativa">Decorativa · Bungee</option>
+              </select>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -483,6 +500,8 @@
       colorCasilla: '#EDE7D9',
       colorTexto: '#1E0A47',
       titulo: 'BINGO PRO',
+      colorTitulo: '#ffffff',
+      fuenteTitulo: 'predeterminada',
       posicionLogo: 'superior',
       logoDataUrl: null,
       logoSizeGen: 40,
@@ -649,11 +668,11 @@
       decorativa: { familia: "'Bungee', Impact, sans-serif", peso: '400' },
     };
 
-    function aplicarFuenteYColorTitulo(el) {
-      const fuente = FUENTES_TITULO[configDiseno.customTituloFuente] || FUENTES_TITULO.predeterminada;
+    function aplicarFuenteYColorTitulo(el, claveFuente, color) {
+      const fuente = FUENTES_TITULO[claveFuente] || FUENTES_TITULO.predeterminada;
       el.style.fontFamily = fuente.familia;
       el.style.fontWeight = fuente.peso;
-      el.style.color = configDiseno.customTituloColor;
+      el.style.color = color;
     }
 
     function actualizarEstilosCustom() {
@@ -727,7 +746,7 @@
         titulo.innerText = configDiseno.customTituloTxt;
         titulo.style.fontSize = `${configDiseno.customTituloSize}px`;
         titulo.style.lineHeight = '1.15';
-        aplicarFuenteYColorTitulo(titulo);
+        aplicarFuenteYColorTitulo(titulo, configDiseno.customTituloFuente, configDiseno.customTituloColor);
         wrapTitulo.style.top = `${configDiseno.customTituloPosY}%`;
         wrapTitulo.classList.remove('hidden');
       } else {
@@ -788,7 +807,12 @@
       carton.style.backgroundColor = configDiseno.colorFondo;
 
       document.getElementById('prev-bingo-header').style.backgroundColor = configDiseno.colorEncabezado;
-      document.getElementById('prev-titulo').innerText = configDiseno.titulo;
+      configDiseno.colorTitulo = document.getElementById('cfg-titulo-color').value;
+      configDiseno.fuenteTitulo = document.getElementById('cfg-titulo-fuente').value;
+      const prevTitulo = document.getElementById('prev-titulo');
+      prevTitulo.innerText = configDiseno.titulo;
+      // Los cartones impresos se clonan de esta vista previa, así que heredan la fuente y el color.
+      aplicarFuenteYColorTitulo(prevTitulo, configDiseno.fuenteTitulo, configDiseno.colorTitulo);
 
       const containerSup = document.getElementById('prev-logo-container-sup');
       const containerPie = document.getElementById('prev-logo-container-pie');
@@ -918,7 +942,7 @@
           h2.className = "font-display font-black text-sm text-white drop-shadow";
           h2.style.fontSize = `${Math.round(configDiseno.customTituloSize * 0.8)}px`;
           h2.style.lineHeight = '1.15';
-          aplicarFuenteYColorTitulo(h2);
+          aplicarFuenteYColorTitulo(h2, configDiseno.customTituloFuente, configDiseno.customTituloColor);
           h2.innerText = configDiseno.customTituloTxt;
           titleWrap.appendChild(h2);
           wrap.appendChild(titleWrap);
