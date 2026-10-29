@@ -26,6 +26,14 @@
     }
   </script>
   <style>
+    /* Tipografías del título de "Subir Plantilla": una por categoría, alojadas en el propio sitio
+       (licencia OFL en assets/fuentes) para que pantalla e impresión se vean igual sin servicios externos. */
+    @font-face { font-family: 'Playfair Display'; font-weight: 800; font-display: swap; src: url('../assets/fuentes/playfair-display-800.woff2') format('woff2'); }
+    @font-face { font-family: 'Montserrat'; font-weight: 800; font-display: swap; src: url('../assets/fuentes/montserrat-800.woff2') format('woff2'); }
+    @font-face { font-family: 'Arvo'; font-weight: 700; font-display: swap; src: url('../assets/fuentes/arvo-700.woff2') format('woff2'); }
+    @font-face { font-family: 'Pacifico'; font-weight: 400; font-display: swap; src: url('../assets/fuentes/pacifico-400.woff2') format('woff2'); }
+    @font-face { font-family: 'Bungee'; font-weight: 400; font-display: swap; src: url('../assets/fuentes/bungee-400.woff2') format('woff2'); }
+
     .pagina-impresion {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -262,6 +270,23 @@
               <input type="range" id="custom-titulo-size" min="10" max="40" value="18" oninput="actualizarEstilosCustom()" class="w-full">
             </div>
           </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <span class="text-[10px] text-slate-300 block mb-1">Color Título</span>
+              <input type="color" id="custom-titulo-color" value="#ffffff" onchange="actualizarEstilosCustom()" class="w-full h-7 rounded cursor-pointer bg-transparent">
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-300 block mb-1">Tipografía Título</span>
+              <select id="custom-titulo-fuente" onchange="actualizarEstilosCustom()" class="glass-input w-full p-1.5 text-xs">
+                <option value="predeterminada" selected>Predeterminada (Arial Black)</option>
+                <option value="serif">Serif · Playfair Display</option>
+                <option value="sans">Sans Serif · Montserrat</option>
+                <option value="slab">Slab Serif · Arvo</option>
+                <option value="script">Script · Pacifico</option>
+                <option value="decorativa">Decorativa · Bungee</option>
+              </select>
+            </div>
+          </div>
 
           <div class="glass-soft flex items-center gap-2 p-2">
             <input type="checkbox" id="custom-show-bingo-header" onchange="actualizarEstilosCustom()" class="w-4 h-4 accent-brandOrange rounded cursor-pointer">
@@ -469,6 +494,8 @@
       customTituloTxt: 'MI GRAN BINGO',
       customTituloPosY: 8,
       customTituloSize: 18,
+      customTituloColor: '#ffffff',
+      customTituloFuente: 'predeterminada',
       customShowBingoHeader: false,
       customColorBingoBg: '#F5711B',
       customColorBingoText: '#ffffff',
@@ -611,6 +638,24 @@
       return `rgba(${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}, ${alpha})`;
     }
 
+    // Tipografías del título (una por categoría). La predeterminada deja la fuente y el grosor de las
+    // clases font-display/font-black, como estaba antes.
+    const FUENTES_TITULO = {
+      predeterminada: { familia: '', peso: '' },
+      serif: { familia: "'Playfair Display', Georgia, 'Times New Roman', serif", peso: '800' },
+      sans: { familia: "'Montserrat', 'Helvetica Neue', Arial, sans-serif", peso: '800' },
+      slab: { familia: "'Arvo', Rockwell, 'Courier New', serif", peso: '700' },
+      script: { familia: "'Pacifico', 'Brush Script MT', cursive", peso: '400' },
+      decorativa: { familia: "'Bungee', Impact, sans-serif", peso: '400' },
+    };
+
+    function aplicarFuenteYColorTitulo(el) {
+      const fuente = FUENTES_TITULO[configDiseno.customTituloFuente] || FUENTES_TITULO.predeterminada;
+      el.style.fontFamily = fuente.familia;
+      el.style.fontWeight = fuente.peso;
+      el.style.color = configDiseno.customTituloColor;
+    }
+
     function actualizarEstilosCustom() {
       configDiseno.customLogoPos = document.getElementById('custom-logo-pos').value;
       configDiseno.customLogoSize = document.getElementById('custom-logo-size').value;
@@ -623,6 +668,8 @@
       configDiseno.customColorBingoText = document.getElementById('custom-color-bingo-text').value;
       configDiseno.customTituloPosY = document.getElementById('custom-titulo-pos-y').value;
       configDiseno.customTituloSize = document.getElementById('custom-titulo-size').value;
+      configDiseno.customTituloColor = document.getElementById('custom-titulo-color').value;
+      configDiseno.customTituloFuente = document.getElementById('custom-titulo-fuente').value;
       configDiseno.customBingoPosY = document.getElementById('custom-bingo-pos-y').value;
       configDiseno.customBingoWidth = document.getElementById('custom-bingo-width').value;
       configDiseno.customBingoSize = document.getElementById('custom-bingo-size').value;
@@ -680,6 +727,7 @@
         titulo.innerText = configDiseno.customTituloTxt;
         titulo.style.fontSize = `${configDiseno.customTituloSize}px`;
         titulo.style.lineHeight = '1.15';
+        aplicarFuenteYColorTitulo(titulo);
         wrapTitulo.style.top = `${configDiseno.customTituloPosY}%`;
         wrapTitulo.classList.remove('hidden');
       } else {
@@ -870,6 +918,7 @@
           h2.className = "font-display font-black text-sm text-white drop-shadow";
           h2.style.fontSize = `${Math.round(configDiseno.customTituloSize * 0.8)}px`;
           h2.style.lineHeight = '1.15';
+          aplicarFuenteYColorTitulo(h2);
           h2.innerText = configDiseno.customTituloTxt;
           titleWrap.appendChild(h2);
           wrap.appendChild(titleWrap);
@@ -1097,7 +1146,8 @@
       if (esperandoImpresion) return;
       esperandoImpresion = true;
       renderizarLoteImpresion(); // solo genera si aún no hay lote para esta cantidad
-      esperarImagenes(document.getElementById('area-impresion'), 15000).then(({ total, sinCargar }) => {
+      // También se esperan las tipografías del título: si no han cargado, la hoja saldría con la fuente de respaldo.
+      Promise.all([esperarImagenes(document.getElementById('area-impresion'), 15000), document.fonts.ready]).then(([{ total, sinCargar }]) => {
         esperandoImpresion = false;
         if (sinCargar > 0 && !confirm(
           `${sinCargar} de ${total} imágenes de las tarjetas no han cargado (por ejemplo, los QR del servicio externo). ` +
