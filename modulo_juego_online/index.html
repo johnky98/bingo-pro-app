@@ -517,7 +517,28 @@
       }
     }
 
+    // Tablas guardadas para la Balotera que no están (idénticas) en la sala y se perderían al sincronizar.
+    function contarTablasQueSeReemplazan() {
+      let guardadas = {};
+      try {
+        guardadas = JSON.parse(localStorage.getItem(CLAVE_TABLAS_BALOTERA)) || {};
+      } catch (e) { /* sin localStorage disponible o contenido dañado */ }
+      if (typeof guardadas !== 'object' || Array.isArray(guardadas)) return 0;
+      const sala = {};
+      jugadoresSala.forEach(j => { sala[String(j.numero)] = JSON.stringify(j.columnas); });
+      return Object.keys(guardadas).filter(id => sala[id] !== JSON.stringify(guardadas[id])).length;
+    }
+
     function finalizarEIrABalotera() {
+      // Mitigación de H07: sincronizar reemplaza todas las tablas guardadas. La solución completa
+      // (partidas separadas) llega con la integración de módulos.
+      const seReemplazan = contarTablasQueSeReemplazan();
+      if (seReemplazan > 0 && !confirm(
+        `La Balotera tiene ${seReemplazan} tabla${seReemplazan === 1 ? '' : 's'} guardada${seReemplazan === 1 ? '' : 's'} que no ${seReemplazan === 1 ? 'está' : 'están'} en esta sala. ` +
+        `Al continuar se reemplazarán por las ${jugadoresSala.length} tablas de la sala y ${seReemplazan === 1 ? 'esa se perderá' : 'esas se perderán'}.\n\n` +
+        'Si las necesitas, cancela y asegúrate de tener su archivo JSON para volver a importarlas después. ¿Continuar?')) {
+        return;
+      }
       const sincronizado = sincronizarTablasConBalotera();
       if (!sincronizado) {
         alert('No se pudo guardar automáticamente (localStorage no disponible en este navegador). Usa "Exportar Tablas" y súbelo manualmente en la Balotera.');
