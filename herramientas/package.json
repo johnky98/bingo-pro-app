@@ -1,0 +1,13 @@
+{
+  "name": "bingo-pro-herramientas",
+  "private": true,
+  "description": "Herramientas de desarrollo de Bingo Pro (no se publican en la web). El sitio no necesita compilarse: assets/tailwind/*.css se genera aquí y se versiona.",
+  "scripts": {
+    "css": "node generar-css.js",
+    "css:comprobar": "node generar-css.js --comprobar"
+  },
+  "devDependencies": {
+    "autoprefixer": "10.6.2",
+    "tailwindcss": "3.4.17"
+  }
+}

@@ -1,6 +1,8 @@
-# Las carpetas docs/ (documentación) y pruebas/ (pruebas automáticas) son internas: se versionan en Git pero no se sirven en la web.
+# Las carpetas docs/ (documentación), pruebas/ (pruebas automáticas) y herramientas/ (desarrollo) son internas: se versionan en Git pero no se sirven en la web.
 # El "!" fuerza la regla aunque el archivo exista.
 /docs        /404.html  404!
 /docs/*     /404.html  404!
 /pruebas    /404.html  404!
 /pruebas/*  /404.html  404!
+/herramientas    /404.html  404!
+/herramientas/*  /404.html  404!

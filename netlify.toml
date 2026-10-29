@@ -1,6 +1,6 @@
-# Sitio estático sin compilación. El único paso de "build" quita docs/ (documentación interna) y
-# pruebas/ (pruebas automáticas del motor) de la copia que se publica: así no se sirven con ninguna
-# variante de la URL (mayúsculas, barras codificadas).
+# Sitio estático sin compilación (el CSS de Tailwind ya va generado en assets/tailwind/). El único paso
+# de "build" quita docs/ (documentación), pruebas/ (pruebas automáticas) y herramientas/ (Tailwind para
+# desarrollo) de la copia que se publica: así no se sirven con ninguna variante de la URL.
 [build]
   publish = "."
-  command = "rm -rf docs pruebas"
+  command = "rm -rf docs pruebas herramientas"

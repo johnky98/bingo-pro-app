@@ -1,2 +1,5 @@
 # Vinculo local de la CLI de Netlify (no se versiona)
 .netlify/
+
+# Dependencias de desarrollo (se instalan con "npm install" en herramientas/)
+node_modules/
