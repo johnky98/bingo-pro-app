@@ -14,10 +14,10 @@ Regla de este documento: los criterios de aceptación describen el **comportamie
 
 | Decisión | Qué bloquea | Estado |
 |---|---|---|
-| **D-13** etiqueta `v0.1.0-estable` (implica un push) | Empezar cualquier cambio con punto de recuperación | Sin responder |
-| **D-02** 3×3/4×4 (ocultar ya / implementar después) | CM-01; el motor y las pruebas deben saber qué tamaños soportan | Sin responder |
-| **D-01** marca BINGO PRO y retirar plantilla Política | CM-02 | Sin responder |
-| **D-12** reglas: **PR-1** (patrón vacío), **PR-2** (cambio de modalidad), **PR-3** (cartón que ya ganó), **PR-6** (pausa), **PR-8** (cierre) | Los criterios marcados [Cond.] y las pruebas de F2 de esas reglas | Sin responder |
+| **D-13** etiqueta `v0.1.0-estable` (implica un push) | Empezar cualquier cambio con punto de recuperación | Aprobada; etiqueta creada y subida |
+| **D-02** 3×3/4×4 (ocultar ya / implementar después) | CM-01; el motor y las pruebas deben saber qué tamaños soportan | Aprobada A (ocultar); hecha en CM-01 |
+| **D-01** marca BINGO PRO y retirar plantilla Política | CM-02 | Aprobada A; hecha en CM-02 |
+| **D-12** reglas: **PR-1** (patrón vacío), **PR-2** (cambio de modalidad), **PR-3** (cartón que ya ganó), **PR-6** (pausa), **PR-8** (cierre) | Los criterios marcados [Cond.] y las pruebas de F2 de esas reglas | Aprobadas: PR-1 (a) en F1.5; PR-2 (b), PR-3 (a), PR-6 y PR-8 el 2026-10-29 |
 | **D-03** QR y dominio | No bloquea programar; **bloquea imprimir cartones para eventos reales** | Sin responder |
 | **D-04 / D-09** experiencia multi-teléfono y arquitectura en tiempo real | El diseño del almacén de partidas (F3) y todo F5 | Sin responder |
 | **D-06** historial y persistencia | Forma del modelo de "partida" en F3 | Sin responder |
@@ -118,8 +118,8 @@ Para cada modalidad se exigen casos: **ganadora exacta**, **a un número de gana
 | AC-M7 | Evaluar dos veces el mismo estado no genera avisos nuevos (idempotencia) | **[P]** |
 | AC-M8 | Sin cartones o sin balotas no se evalúa y no hay error | **[D]** |
 | AC-M9 | Tras un ganador la ronda continúa | vigente **[D]** · [Cond. PR-5] |
-| AC-M10 | Avisa una vez por ronda **y por modalidad** | [Cond. PR-3] |
-| AC-M11 | Al cambiar de modalidad en plena ronda se reevalúa al instante, con confirmación | [Cond. PR-2] |
+| AC-M10 | Avisa una vez por ronda **y por modalidad** | PR-3 aprobada; hecho en F2 (pruebas del motor y de la Balotera) |
+| AC-M11 | Al cambiar de modalidad en plena ronda se reevalúa al instante, con confirmación | PR-2 aprobada; hecho en F2 (pruebas del motor y de la Balotera) |
 | AC-M12 | Reglas de desempate o reparto de premio | [Cond. PR-4]; hoy no existen |
 
 ### 3.5 Gestión de rondas

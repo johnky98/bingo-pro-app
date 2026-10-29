@@ -227,7 +227,14 @@
     </div>
   </div>
 
+  <script src="../nucleo/motor-bingo.js"></script>
   <script>
+    // Reglas del juego: nucleo/motor-bingo.js (probadas con "node --test pruebas/*.test.js").
+    const {
+      MAX_TABLAS_POR_ARCHIVO, NOMBRES_PATRON, validarLoteTablas, detalleRechazos, letraDeBalota,
+      generarPatron, patronTieneCasillas, idModalidad, tablaCumplePatron, detectarGanadores, migrarAvisados,
+    } = BingoMotor;
+
     const CLAVE_BALOTAS = 'bingo_balotera_balotas_v1';
     const CLAVE_TABLAS = 'bingo_balotera_tablas_v1';
     const CLAVE_PATRON = 'bingo_balotera_patron_v1';
@@ -236,52 +243,6 @@
     const CLAVE_HISTORIAL = 'bingo_balotera_historial_ganadores_v1';
     const CLAVE_AVISADOS = 'bingo_balotera_avisados_v1';
     const TOTAL_RONDAS_POR_DEFECTO = 10;
-
-    // ============================================================
-    // VALIDACIÓN DE TABLAS (copia idéntica en modulo_juego_online).
-    // Una tabla mal formada rompía cada balota y la detección de todas las demás.
-    // ============================================================
-    const RANGOS_COLUMNA = [[1, 15], [16, 30], [31, 45], [46, 60], [61, 75]];
-    const MAX_TABLAS_POR_ARCHIVO = 2000; // mismo tope que el módulo de Diseño
-
-    // Devuelve el motivo por el que el cartón no es válido, o null si lo es.
-    // El número guardado en la casilla libre del centro no se usa, así que no se valida.
-    function motivoCartonInvalido(columnas) {
-      if (!Array.isArray(columnas) || columnas.length !== 5) return 'no tiene 5 columnas';
-      for (let c = 0; c < 5; c++) {
-        const letra = 'BINGO'[c];
-        const col = columnas[c];
-        if (!Array.isArray(col) || col.length !== 5) return `la columna ${letra} no tiene 5 números`;
-        const [min, max] = RANGOS_COLUMNA[c];
-        const usados = col.filter((n, f) => !(c === 2 && f === 2));
-        if (usados.some(n => !Number.isInteger(n) || n < min || n > max)) return `la columna ${letra} tiene números fuera de ${min}-${max}`;
-        if (new Set(usados).size !== usados.length) return `la columna ${letra} repite números`;
-      }
-      return null;
-    }
-
-    // Convierte una lista [{id, columnas}] en { "id": columnas } y aparta lo que no es válido.
-    function validarLoteTablas(lista) {
-      const tablas = {};
-      const rechazadas = [];
-      lista.forEach((t, i) => {
-        const id = t && (typeof t.id === 'number' || typeof t.id === 'string') ? String(t.id).trim() : '';
-        if (!/^[1-9]\d*$/.test(id)) {
-          rechazadas.push(`${id ? '#' + id.slice(0, 20) : 'Posición ' + (i + 1)}: el número de tabla debe ser un entero positivo`);
-          return;
-        }
-        if (tablas[id]) { rechazadas.push(`#${id}: número de tabla repetido`); return; }
-        const motivo = motivoCartonInvalido(t.columnas);
-        if (motivo) { rechazadas.push(`#${id}: ${motivo}`); return; }
-        tablas[id] = t.columnas;
-      });
-      return { tablas, rechazadas };
-    }
-
-    function detalleRechazos(rechazadas) {
-      const muestra = rechazadas.slice(0, 5).join('\n');
-      return `\n\n${muestra}${rechazadas.length > 5 ? `\n… y ${rechazadas.length - 5} más.` : ''}`;
-    }
 
     function guardarBolasCantadas() {
       try {
@@ -354,49 +315,17 @@
     let rondaActual = enteroPositivoGuardado(CLAVE_RONDA, 1);
     let totalRondas = Math.max(enteroPositivoGuardado(CLAVE_TOTAL_RONDAS, TOTAL_RONDAS_POR_DEFECTO), rondaActual);
     let historialGanadores = leerJSON(CLAVE_HISTORIAL, []);
-    // Tablas ya avisadas como ganadoras ("ronda:idTabla"). Es independiente del historial
-    // visible para que "Borrar historial" a mitad de ronda no repita avisos.
-    const ganadoresAvisados = new Set(leerJSON(CLAVE_AVISADOS, []));
-
-    const NOMBRES_PATRON = {
-      lleno: 'Cartón Lleno',
-      horizontal: 'Línea Horizontal',
-      vertical: 'Línea Vertical',
-      l: 'Figura en L',
-      cuadrado: 'Figura en O / Cuadrado',
-      esquinas: 'Cuatro Esquinas',
-      personalizado: 'Personalizado (manual)',
-    };
-
-    function generarPatron(clave) {
-      const grid = Array.from({ length: 5 }, () => Array(5).fill(false));
-      for (let f = 0; f < 5; f++) {
-        for (let c = 0; c < 5; c++) {
-          switch (clave) {
-            case 'lleno': grid[f][c] = true; break;
-            case 'horizontal': grid[f][c] = (f === 2); break;
-            case 'vertical': grid[f][c] = (c === 2); break;
-            case 'l': grid[f][c] = (c === 0) || (f === 4); break;
-            case 'cuadrado': grid[f][c] = (f === 0 || f === 4 || c === 0 || c === 4); break;
-            case 'esquinas': grid[f][c] = (f === 0 || f === 4) && (c === 0 || c === 4); break;
-            default: grid[f][c] = false;
-          }
-        }
-      }
-      grid[2][2] = true;
-      return grid;
-    }
-
-    // Un patrón sin casillas, aparte de la libre del centro, haría ganar a todas las tablas con la primera balota.
-    function patronTieneCasillas(grid) {
-      return Array.isArray(grid) && grid.length === 5 && grid.every(fila => Array.isArray(fila) && fila.length === 5) &&
-        grid.some((fila, f) => fila.some((encendida, c) => encendida === true && !(f === 2 && c === 2)));
-    }
 
     const patronGuardado = cargarPatronActivo();
     let patronActivo = (patronGuardado && patronTieneCasillas(patronGuardado.grid))
       ? patronGuardado
       : { nombre: NOMBRES_PATRON.lleno, clave: 'lleno', grid: generarPatron('lleno') };
+
+    // Tablas ya avisadas como ganadoras ("ronda:modalidad:idTabla"). Es independiente del historial
+    // visible para que "Borrar historial" a mitad de ronda no repita avisos. Los avisos guardados
+    // antes de F2 ("ronda:idTabla") se convierten a la modalidad activa.
+    const ganadoresAvisados = new Set(migrarAvisados(leerJSON(CLAVE_AVISADOS, []), patronActivo));
+    escribirJSON(CLAVE_AVISADOS, Array.from(ganadoresAvisados));
     let matrizDibujoTemp = (() => {
       if (patronActivo.clave === 'personalizado') return patronActivo.grid.map(fila => fila.slice());
       const g = Array.from({ length: 5 }, () => Array(5).fill(false));
@@ -430,11 +359,30 @@
       }
     }
 
-    function cambiarModalidadPreestablecida(clave) {
-      patronActivo = { nombre: NOMBRES_PATRON[clave], clave, grid: generarPatron(clave) };
+    // PR-2: con la ronda empezada y tablas cargadas, cambiar la modalidad pide confirmación,
+    // porque los cartones se revisan en ese mismo momento (no con la siguiente balota).
+    function confirmarCambioModalidad(nuevoPatron) {
+      if (idModalidad(nuevoPatron) === idModalidad(patronActivo)) return true;
+      if (bolasCantadas.length === 0 || Object.keys(tablasImportadas).length === 0) return true;
+      const n = bolasCantadas.length;
+      return confirm(`Ya ${n === 1 ? 'salió 1 balota' : `salieron ${n} balotas`} en esta ronda. Al cambiar a "${nuevoPatron.nombre}" se revisan los cartones en este momento y puede haber ganadores inmediatos. ¿Cambiar la modalidad?`);
+    }
+
+    function activarPatron(nuevoPatron) {
+      patronActivo = nuevoPatron;
       aplicarPatronActivo();
       guardarPatronActivo();
       refrescarVerificacionSiHayTablaVisible();
+      verificarGanadoresAutomatico();
+    }
+
+    function cambiarModalidadPreestablecida(clave) {
+      const nuevo = { nombre: NOMBRES_PATRON[clave], clave, grid: generarPatron(clave) };
+      if (!confirmarCambioModalidad(nuevo)) {
+        aplicarPatronActivo(); // devuelve el selector a la modalidad que sigue activa
+        return;
+      }
+      activarPatron(nuevo);
     }
 
     function construirMatrizDibujo() {
@@ -477,11 +425,10 @@
       }
       const gridGuardado = matrizDibujoTemp.map(fila => fila.slice());
       gridGuardado[2][2] = true;
-      patronActivo = { nombre: NOMBRES_PATRON.personalizado, clave: 'personalizado', grid: gridGuardado };
-      aplicarPatronActivo();
-      guardarPatronActivo();
+      const nuevo = { nombre: NOMBRES_PATRON.personalizado, clave: 'personalizado', grid: gridGuardado };
+      if (!confirmarCambioModalidad(nuevo)) return;
       cerrarModalDibujo();
-      refrescarVerificacionSiHayTablaVisible();
+      activarPatron(nuevo);
     }
 
     function inicializarTableroBalotas() {
@@ -516,16 +463,12 @@
     }
 
     function sacarBalotaAleatoria() {
-      if (bolasCantadas.length >= 75) {
+      const balota = BingoMotor.sacarBalota(bolasCantadas);
+      if (balota === null) {
         alert("¡Ya se han cantado las 75 balotas!");
         return;
       }
-      let disponible = [];
-      for (let i = 1; i <= 75; i++) {
-        if (!bolasCantadas.includes(i)) disponible.push(i);
-      }
-      let rand = disponible[Math.floor(Math.random() * disponible.length)];
-      bolasCantadas.push(rand);
+      bolasCantadas.push(balota);
       actualizarTableroUI(true);
       guardarBolasCantadas();
       verificarGanadoresAutomatico();
@@ -541,11 +484,7 @@
       const baseCirculo = "orb w-48 h-48 md:w-56 md:h-56 mx-auto rounded-full flex flex-col items-center justify-center transition-colors";
 
       if (ultima) {
-        let letra = 'B';
-        if (ultima > 15) letra = 'I';
-        if (ultima > 30) letra = 'N';
-        if (ultima > 45) letra = 'G';
-        if (ultima > 60) letra = 'O';
+        const letra = letraDeBalota(ultima);
         elLetra.textContent = letra;
         elNumero.textContent = ultima;
         circulo.className = `bg-${coloresPorLetra[letra]} ${baseCirculo}`;
@@ -674,92 +613,6 @@
         : 'Aún no has importado ningún archivo de tablas.') + descartadas;
     }
 
-    // Lógica pura (sin DOM): dada una tabla, la modalidad activa y las balotas cantadas,
-    // calcula la matriz 5x5, el patrón a pintar y si la tabla ya es ganadora.
-    // La usan la verificación manual y la detección automática tras cada balota.
-    function tablaCumplePatron(columnas, patronActivo, bolasCantadas) {
-      const matriz = [];
-      for (let f = 0; f < 5; f++) {
-        const fila = [];
-        for (let c = 0; c < 5; c++) {
-          const esLibre = (f === 2 && c === 2);
-          const numero = esLibre ? null : columnas[c][f];
-          const marcada = esLibre || bolasCantadas.includes(numero);
-          fila.push({ numero, marcada, esLibre });
-        }
-        matriz.push(fila);
-      }
-
-      // Se evalúa ÚNICAMENTE contra la modalidad de juego activa, no contra cualquier
-      // línea o figura posible. Para "Línea Horizontal" / "Línea Vertical" se acepta
-      // CUALQUIER fila o columna completa (no solo una fija), igual que en un bingo real;
-      // para el resto de modalidades (Cartón Lleno, L, Cuadrado, Esquinas, Personalizado)
-      // se exige la figura exacta configurada en patronActivo.grid.
-      let patron; // grid 5x5 booleano que se usará para pintar y evaluar
-      let esGanadora = false;
-
-      if (patronActivo.clave === 'horizontal') {
-        let filaGanadora = -1;
-        for (let f = 0; f < 5; f++) {
-          if (matriz[f].every(cel => cel.marcada)) { filaGanadora = f; break; }
-        }
-        if (filaGanadora === -1) {
-          // ninguna fila completa aún: se muestra como referencia la más avanzada
-          let mejorProgreso = -1;
-          for (let f = 0; f < 5; f++) {
-            const avance = matriz[f].filter(cel => cel.marcada).length;
-            if (avance > mejorProgreso) { mejorProgreso = avance; filaGanadora = f; }
-          }
-        } else {
-          esGanadora = true;
-        }
-        patron = Array.from({ length: 5 }, (_, f) => Array(5).fill(f === filaGanadora));
-      } else if (patronActivo.clave === 'vertical') {
-        let colGanadora = -1;
-        for (let c = 0; c < 5; c++) {
-          if (matriz.every(fila => fila[c].marcada)) { colGanadora = c; break; }
-        }
-        if (colGanadora === -1) {
-          let mejorProgreso = -1;
-          for (let c = 0; c < 5; c++) {
-            const avance = matriz.filter(fila => fila[c].marcada).length;
-            if (avance > mejorProgreso) { mejorProgreso = avance; colGanadora = c; }
-          }
-        } else {
-          esGanadora = true;
-        }
-        patron = Array.from({ length: 5 }, () => Array.from({ length: 5 }, (_, c) => c === colGanadora));
-      } else {
-        // Cartón Lleno, Figura en L, Cuadrado, Cuatro Esquinas, Personalizado: figura fija
-        patron = patronActivo.grid;
-      }
-
-      let requeridas = 0;
-      let cumplidas = 0;
-      const numerosFaltantes = [];
-
-      for (let f = 0; f < 5; f++) {
-        for (let c = 0; c < 5; c++) {
-          if (patron[f][c]) {
-            requeridas++;
-            if (matriz[f][c].marcada) {
-              cumplidas++;
-            } else {
-              numerosFaltantes.push(matriz[f][c].numero);
-            }
-          }
-        }
-      }
-
-      // Para las modalidades de figura fija, "ganadora" se determina por cumplir el 100%.
-      // Para horizontal/vertical ya se determinó arriba (cualquier fila/columna completa).
-      if (patronActivo.clave !== 'horizontal' && patronActivo.clave !== 'vertical') {
-        esGanadora = requeridas > 0 && cumplidas === requeridas;
-      }
-
-      return { matriz, patron, esGanadora, requeridas, cumplidas, numerosFaltantes };
-    }
-
     function verificarTabla() {
       const idInput = document.getElementById('input-id-tabla');
       const id = idInput.value.trim();
@@ -884,27 +737,16 @@
     }
 
     // ============================================================
-    // DETECCIÓN AUTOMÁTICA DE GANADORES: tras cada balota (y al importar tablas o
-    // cargar la página) revisa todas las tablas cargadas contra la modalidad activa.
-    // Una tabla avisa una sola vez por ronda, pero puede volver a ganar en otra ronda.
+    // DETECCIÓN AUTOMÁTICA DE GANADORES: tras cada balota (y al cambiar la modalidad,
+    // importar tablas o cargar la página) revisa todas las tablas contra la modalidad activa.
+    // Una tabla avisa una sola vez por ronda y por modalidad (PR-3).
     // ============================================================
     function verificarGanadoresAutomatico() {
-      const ids = Object.keys(tablasImportadas);
-      if (ids.length === 0 || bolasCantadas.length === 0) return;
-
-      const nuevosGanadores = [];
-      for (const id of ids) {
-        const clave = `${rondaActual}:${id}`;
-        if (ganadoresAvisados.has(clave)) continue;
-
-        const { esGanadora } = tablaCumplePatron(tablasImportadas[id], patronActivo, bolasCantadas);
-        if (!esGanadora) continue;
-
-        ganadoresAvisados.add(clave);
-        const registro = { ronda: rondaActual, idTabla: id };
-        historialGanadores.push(registro);
-        nuevosGanadores.push(registro);
-      }
+      const { nuevos: nuevosGanadores, claves } = detectarGanadores({
+        tablas: tablasImportadas, bolasCantadas, patron: patronActivo, ronda: rondaActual, avisados: ganadoresAvisados,
+      });
+      claves.forEach(clave => ganadoresAvisados.add(clave));
+      historialGanadores.push(...nuevosGanadores);
 
       if (nuevosGanadores.length > 0) {
         escribirJSON(CLAVE_AVISADOS, Array.from(ganadoresAvisados));
@@ -932,7 +774,7 @@
         const tarjeta = crearElemento('div', 'bg-green-900/30 border-2 border-green-500 rounded-xl p-4 text-center mb-3', '');
         tarjeta.appendChild(crearElemento('p', 'text-xl font-display font-black text-green-400 mb-1', '✅ ¡BINGO!'));
         tarjeta.appendChild(crearElemento('p', 'text-sm text-white font-bold', etiquetaTabla(g.idTabla)));
-        tarjeta.appendChild(crearElemento('p', 'text-[10px] text-green-400/70 mt-1', `Ronda ${g.ronda} — ${patronActivo.nombre}`));
+        tarjeta.appendChild(crearElemento('p', 'text-[10px] text-green-400/70 mt-1', `Ronda ${g.ronda} — ${g.modalidad}`));
         cont.appendChild(tarjeta);
       });
       const modal = document.getElementById('modal-ganador');
@@ -955,7 +797,8 @@
       }
       historialGanadores.slice().reverse().forEach(g => {
         const fila = crearElemento('div', 'glass-soft flex justify-between items-center px-3 py-2', '');
-        fila.appendChild(crearElemento('span', 'text-xs text-purple-400', `Ronda ${g.ronda}`));
+        // Los registros anteriores a F2 no guardaban la modalidad.
+        fila.appendChild(crearElemento('span', 'text-xs text-purple-400', g.modalidad ? `Ronda ${g.ronda} · ${g.modalidad}` : `Ronda ${g.ronda}`));
         fila.appendChild(crearElemento('span', 'font-bold text-amber-300', etiquetaTabla(g.idTabla)));
         cont.appendChild(fila);
       });

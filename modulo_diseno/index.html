@@ -490,8 +490,9 @@
 
   </main>
 
+  <script src="../nucleo/motor-bingo.js"></script>
   <script>
-    let modoOrigen = 'generador'; 
+    let modoOrigen = 'generador';
     let ultimoLoteTablas = []; // [{ id, columnas }] del último lote renderizado, usado para exportar a JSON
     let configDiseno = {
       formato: '5x5',
@@ -775,18 +776,9 @@
       renderizarGridMuestreoCustom();
     }
 
+    // Cartón de muestra para las vistas previas (reglas en nucleo/motor-bingo.js).
     function generarNumeros5x5() {
-      const rangos = [[1, 15], [16, 30], [31, 45], [46, 60], [61, 75]];
-      let columnas = [];
-      for(let i = 0; i < 5; i++) {
-        let nums = [];
-        while(nums.length < 5) {
-          let rand = Math.floor(Math.random() * (rangos[i][1] - rangos[i][0] + 1)) + rangos[i][0];
-          if(!nums.includes(rand)) nums.push(rand);
-        }
-        columnas.push(nums);
-      }
-      return columnas;
+      return BingoMotor.generarCarton();
     }
 
     function actualizarVistaPrevia() {
@@ -1098,11 +1090,9 @@
     }
 
     // Genera un lote NUEVO de tablas (números aleatorios frescos) del tamaño pedido.
+    // El lote no repite cartones dentro de sí mismo.
     function generarNuevoLote(cantidadTotal) {
-      ultimoLoteTablas = [];
-      for (let i = 1; i <= cantidadTotal; i++) {
-        ultimoLoteTablas.push({ id: i, columnas: generarNumeros5x5() });
-      }
+      ultimoLoteTablas = BingoMotor.generarCartonesUnicos(cantidadTotal).map((columnas, i) => ({ id: i + 1, columnas }));
     }
 
     // Dibuja en pantalla el lote que ya está en ultimoLoteTablas, SIN generar

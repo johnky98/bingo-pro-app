@@ -191,50 +191,10 @@
     <div class="text-center py-2 text-[10px] text-purple-400">Bingo Pro - Módulo Juego Online</div>
   </div>
 
+  <script src="../nucleo/motor-bingo.js"></script>
   <script>
-    // ============================================================
-    // BingoCommon: mismo algoritmo reforzado de generación de tablas
-    // (Fisher-Yates + firma de columnas para garantizar cero duplicados)
-    // usado también en el módulo de Diseño, para mantener consistencia.
-    // ============================================================
-    const RANGOS = [
-      { letra: 'B', min: 1,  max: 15 },
-      { letra: 'I', min: 16, max: 30 },
-      { letra: 'N', min: 31, max: 45 },
-      { letra: 'G', min: 46, max: 60 },
-      { letra: 'O', min: 61, max: 75 },
-    ];
-
-    function numerosAleatorios(min, max, cantidad) {
-      const pool = [];
-      for (let n = min; n <= max; n++) pool.push(n);
-      for (let i = pool.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [pool[i], pool[j]] = [pool[j], pool[i]];
-      }
-      return pool.slice(0, cantidad);
-    }
-
-    function generarColumnasCarton() {
-      return RANGOS.map(r => numerosAleatorios(r.min, r.max, 5));
-    }
-
-    function firmaCarton(columnas) {
-      return columnas.map(col => col.join(',')).join('|');
-    }
-
-    function generarCartonesUnicos(total) {
-      const vistos = new Set();
-      const cartones = [];
-      while (cartones.length < total) {
-        const columnas = generarColumnasCarton();
-        const firma = firmaCarton(columnas);
-        if (vistos.has(firma)) continue; // evita tablas duplicadas en el mismo lote
-        vistos.add(firma);
-        cartones.push(columnas);
-      }
-      return cartones;
-    }
+    // Reglas del juego (generar y validar cartones): nucleo/motor-bingo.js, compartido con Diseño y Balotera.
+    const { MAX_TABLAS_POR_ARCHIVO, generarCartonesUnicos, motivoCartonInvalido, validarLoteTablas, detalleRechazos } = BingoMotor;
 
     // ============================================================
     // Codificación de la tabla en la URL (base64 URL-safe, sin servidor)
@@ -262,51 +222,6 @@
     // dependencia de ninguna librería JS externa que pueda fallar al cargar).
     function urlImagenQR(datos, tamano) {
       return `https://api.qrserver.com/v1/create-qr-code/?size=${tamano}x${tamano}&data=${encodeURIComponent(datos)}`;
-    }
-
-    // ============================================================
-    // VALIDACIÓN DE TABLAS (copia idéntica en modulo_balotera).
-    // ============================================================
-    const RANGOS_COLUMNA = [[1, 15], [16, 30], [31, 45], [46, 60], [61, 75]];
-    const MAX_TABLAS_POR_ARCHIVO = 2000; // mismo tope que el módulo de Diseño
-
-    // Devuelve el motivo por el que el cartón no es válido, o null si lo es.
-    // El número guardado en la casilla libre del centro no se usa, así que no se valida.
-    function motivoCartonInvalido(columnas) {
-      if (!Array.isArray(columnas) || columnas.length !== 5) return 'no tiene 5 columnas';
-      for (let c = 0; c < 5; c++) {
-        const letra = 'BINGO'[c];
-        const col = columnas[c];
-        if (!Array.isArray(col) || col.length !== 5) return `la columna ${letra} no tiene 5 números`;
-        const [min, max] = RANGOS_COLUMNA[c];
-        const usados = col.filter((n, f) => !(c === 2 && f === 2));
-        if (usados.some(n => !Number.isInteger(n) || n < min || n > max)) return `la columna ${letra} tiene números fuera de ${min}-${max}`;
-        if (new Set(usados).size !== usados.length) return `la columna ${letra} repite números`;
-      }
-      return null;
-    }
-
-    // Convierte una lista [{id, columnas}] en { "id": columnas } y aparta lo que no es válido.
-    function validarLoteTablas(lista) {
-      const tablas = {};
-      const rechazadas = [];
-      lista.forEach((t, i) => {
-        const id = t && (typeof t.id === 'number' || typeof t.id === 'string') ? String(t.id).trim() : '';
-        if (!/^[1-9]\d*$/.test(id)) {
-          rechazadas.push(`${id ? '#' + id.slice(0, 20) : 'Posición ' + (i + 1)}: el número de tabla debe ser un entero positivo`);
-          return;
-        }
-        if (tablas[id]) { rechazadas.push(`#${id}: número de tabla repetido`); return; }
-        const motivo = motivoCartonInvalido(t.columnas);
-        if (motivo) { rechazadas.push(`#${id}: ${motivo}`); return; }
-        tablas[id] = t.columnas;
-      });
-      return { tablas, rechazadas };
-    }
-
-    function detalleRechazos(rechazadas) {
-      const muestra = rechazadas.slice(0, 5).join('\n');
-      return `\n\n${muestra}${rechazadas.length > 5 ? `\n… y ${rechazadas.length - 5} más.` : ''}`;
     }
 
     // ============================================================

@@ -133,18 +133,62 @@ Cada una indica opciones, mi recomendación y por qué. Las que cierran defectos
 
 | ID | Tema | Opciones | Recomendación | Motivo | Aprobación |
 |---|---|---|---|---|---|
-| PR-1 | **Patrón personalizado vacío** (A8-1) | (a) Exigir al menos 1 casilla (b) Dejarlo | (a) | Es un error, no una regla; hoy produce ganadores falsos | Se corrige en F1.5 si lo aprueba |
-| PR-2 | **Cambio de modalidad a mitad de ronda** | (a) Bloquearlo una vez salió la primera balota (b) Permitirlo con confirmación y reevaluar de inmediato (c) Mantener | (b), con aviso "puede haber ganadores inmediatos" | Evita anuncios diferidos con una balota ajena y mantiene flexibilidad | **Sí** |
-| PR-3 | **Un cartón que ya ganó en la ronda** | (a) Una sola vez por ronda y por modalidad (b) Una sola vez por ronda (actual) (c) Cada vez que cumpla una modalidad nueva | (a) | Permite el "bingo por etapas" sin repetir avisos; requiere incluir la modalidad en la clave | **Sí** |
+| PR-1 | **Patrón personalizado vacío** (A8-1) | (a) Exigir al menos 1 casilla (b) Dejarlo | (a) | Es un error, no una regla; hoy produce ganadores falsos | **Aprobada (a)**; hecha en F1.5 (CM-04) |
+| PR-2 | **Cambio de modalidad a mitad de ronda** | (a) Bloquearlo una vez salió la primera balota (b) Permitirlo con confirmación y reevaluar de inmediato (c) Mantener | (b), con aviso "puede haber ganadores inmediatos" | Evita anuncios diferidos con una balota ajena y mantiene flexibilidad | **Aprobada (b)** el 2026-10-29; se implementa en F2 |
+| PR-3 | **Un cartón que ya ganó en la ronda** | (a) Una sola vez por ronda y por modalidad (b) Una sola vez por ronda (actual) (c) Cada vez que cumpla una modalidad nueva | (a) | Permite el "bingo por etapas" sin repetir avisos; requiere incluir la modalidad en la clave | **Aprobada (a)** el 2026-10-29; se implementa en F2 |
 | PR-4 | **Varios ganadores simultáneos** | (a) Todos ganan (actual) (b) Desempate por regla del organizador (c) Reparto | (a) como regla del sistema; el reparto del premio es del organizador, fuera de la app | La app no gestiona premios | **Sí** |
 | PR-5 | **Qué pasa tras un ganador** | (a) La ronda sigue (actual) (b) Pausa automática hasta confirmar que el premio se otorgó | (b) opcional con interruptor | Evita seguir sacando balotas por error | **Sí** |
-| PR-6 | **Pausa** | Añadir "Pausar" que congele el botón de sacar balota | Sí, F3 | Hoy no existe y es habitual en eventos | **Sí** |
+| PR-6 | **Pausa** | Añadir "Pausar" que congele el botón de sacar balota | Sí, F3 | Hoy no existe y es habitual en eventos | **Aprobada** el 2026-10-29: estado en el motor en F2, botón en F3 |
 | PR-7 | **Reiniciar** | Separar (1) reiniciar ronda, (2) reiniciar partida, (3) partida nueva | Sí, F6; con confirmaciones diferenciadas | Hoy un solo botón mezcla efectos | **Sí** |
-| PR-8 | **Cierre de partida** | Acción "Finalizar partida" que bloquea el juego, genera resumen exportable y archiva el historial | Sí, F6 | Hoy no existe | **Sí** |
-| PR-9 | **Validación de cartones** | Validar estructura, rangos, unicidad y tamaño máximo al importar y al abrir `?c=` | Sí, F2 | Cierra R-03, R-11 | Es corrección; informo en F2 |
+| PR-8 | **Cierre de partida** | Acción "Finalizar partida" que bloquea el juego, genera resumen exportable y archiva el historial | Sí, F6 | Hoy no existe | **Aprobada** el 2026-10-29: estado en el motor en F2, resumen y pantalla en F6 |
+| PR-9 | **Validación de cartones** | Validar estructura, rangos, unicidad y tamaño máximo al importar y al abrir `?c=` | Sí, F2 | Cierra R-03, R-11 | Hecha en F1.5 (CM-06); en F2 pasa al motor, una sola copia |
 | PR-10 | **Ganador en partidas multidispositivo** | El servidor decide quién ganó, con los cartones y balotas guardados en servidor, no con datos del cliente | Sí, si se aprueba el backend (F5) | Evita fabricar cartones o balotas | **Sí**, ligado a D-09 |
 | PR-11 | **Recuperación en salas compartidas** | Reconectar con el mismo código y reanudar el último estado confirmado | Sí, F5/F6 | Requisito del plan | Ligado a D-09 |
-| PR-12 | **Aleatoriedad de las balotas** | (a) `Math.random` (b) `crypto.getRandomValues` | (b) en F2 si se acepta | Mejora de calidad sin costo; no cambia la experiencia | Informativa |
+| PR-12 | **Aleatoriedad de las balotas** | (a) `Math.random` (b) `crypto.getRandomValues` | (b) en F2 si se acepta | Mejora de calidad sin costo; no cambia la experiencia | **Aprobada (b)** el 2026-10-29; hecha en F2 |
 | PR-13 | **Más modalidades** (diagonales, X, doble línea) | Añadir o no | No ahora; primero cerrar F2/F3 | Alcance | **Sí** (producto) |
 
 Mientras no apruebes una propuesta, el comportamiento sigue siendo el de la Parte A.
+
+---
+
+# PARTE C — MOTOR DE BINGO (F2)
+
+Las reglas viven en un solo archivo, `nucleo/motor-bingo.js`, sin pantalla, almacenamiento ni red. Lo cargan la Balotera, el Juego Online y el Diseño. Las pruebas automáticas están en `pruebas/motor.test.js` y se ejecutan desde la raíz del proyecto, sin instalar nada:
+
+```
+node --test "pruebas/*.test.js"
+```
+
+`pruebas/` y `docs/` no se publican en la web (`netlify.toml` las quita de la copia publicada).
+
+## Qué cambió para el usuario en F2
+
+| Regla | Antes | Ahora |
+|---|---|---|
+| **PR-2** cambio de modalidad con la ronda empezada | Se cambiaba sin aviso; el ganador aparecía recién con la balota siguiente | Si ya salió alguna balota y hay tablas cargadas, pide confirmación ("puede haber ganadores inmediatos") y revisa los cartones en ese momento. Si se cancela, sigue la modalidad anterior |
+| **PR-3** cartón que ya ganó | Una sola vez por ronda | Una vez por ronda **y por modalidad**: puede ganar Línea y luego Cartón Lleno en la misma ronda. Volver a una modalidad que ya ganó no repite el aviso. Cada figura personalizada distinta cuenta como modalidad propia |
+| Historial y aviso de ganador | Ronda y tabla | Ronda, tabla y modalidad (los registros anteriores se siguen mostrando sin modalidad) |
+| **PR-12** azar | `Math.random` | `crypto.getRandomValues`, con rechazo para que todos los resultados sean igual de probables. Aplica a las balotas y a los cartones de Diseño y Online |
+| Lote de Diseño | Podía, en teoría, repetir un cartón | Nunca repite un cartón dentro del lote (igual que el Online) |
+
+**Avisos guardados de antes de F2.** Se guardaban como `ronda:tabla`. Al abrir la Balotera se convierten a `ronda:modalidad:tabla` con la modalidad activa, para que una ronda a medias no repita avisos ya dados.
+
+## Estados de la partida (preparados para F3 y F6)
+
+```
+preparada --sacar_balota--> en_juego --pausar--> pausada --reanudar--> en_juego
+nueva_ronda / reiniciar --> preparada        finalizar --> finalizada (no admite nada más)
+```
+
+Con la partida en pausa no se puede sacar balota (PR-6). El botón de pausa llega en F3 y el cierre con resumen en F6 (PR-8); la pantalla todavía no usa estos estados.
+
+## Casos límite cubiertos por las pruebas
+
+- Cada modalidad, con casos que ganan y casos que no. Línea horizontal y vertical aceptan cualquier fila o columna; la fila y la columna del centro necesitan 4 números.
+- Una figura fija no gana con otra línea completa. Las balotas que no están en el cartón y el número guardado en la casilla libre no cuentan.
+- Varios ganadores con la misma balota.
+- No se repiten avisos con las balotas siguientes, y borrar el historial no los reactiva.
+- En una ronda nueva el mismo cartón puede volver a ganar.
+- Validación de cartones (columnas, rangos, repetidos, tipos) y de lotes (números de tabla, repetidos, tope de 2 000).
+- 75 balotas sin repetir; después no sale ninguna.
+- Si la fuente de azar falla, la generación de lotes se detiene con error en vez de colgar la página.
