@@ -336,8 +336,16 @@
       return grid;
     }
 
+    // Un patrón sin casillas, aparte de la libre del centro, haría ganar a todas las tablas con la primera balota.
+    function patronTieneCasillas(grid) {
+      return Array.isArray(grid) && grid.length === 5 && grid.every(fila => Array.isArray(fila) && fila.length === 5) &&
+        grid.some((fila, f) => fila.some((encendida, c) => encendida === true && !(f === 2 && c === 2)));
+    }
+
     const patronGuardado = cargarPatronActivo();
-    let patronActivo = patronGuardado || { nombre: NOMBRES_PATRON.lleno, clave: 'lleno', grid: generarPatron('lleno') };
+    let patronActivo = (patronGuardado && patronTieneCasillas(patronGuardado.grid))
+      ? patronGuardado
+      : { nombre: NOMBRES_PATRON.lleno, clave: 'lleno', grid: generarPatron('lleno') };
     let matrizDibujoTemp = (() => {
       if (patronActivo.clave === 'personalizado') return patronActivo.grid.map(fila => fila.slice());
       const g = Array.from({ length: 5 }, () => Array(5).fill(false));
@@ -412,6 +420,10 @@
     }
 
     function guardarPatronPersonalizado() {
+      if (!patronTieneCasillas(matrizDibujoTemp)) {
+        alert('Dibuja al menos una casilla además de la casilla libre del centro.');
+        return;
+      }
       const gridGuardado = matrizDibujoTemp.map(fila => fila.slice());
       gridGuardado[2][2] = true;
       patronActivo = { nombre: NOMBRES_PATRON.personalizado, clave: 'personalizado', grid: gridGuardado };
