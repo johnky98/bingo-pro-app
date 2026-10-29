@@ -1,0 +1,4 @@
+# La carpeta docs/ es documentación interna del proyecto: se versiona en Git pero no se sirve en la web.
+# El "!" fuerza la regla aunque el archivo exista.
+/docs     /404.html  404!
+/docs/*   /404.html  404!
